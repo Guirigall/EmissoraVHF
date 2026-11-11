@@ -1,0 +1,26 @@
+{
+  "repository": "EmissoraVHF",
+  "sourceCommit": "c81995be1245e57ac4145ac0cd1a9c9b751feeac",
+  "url": "https://guirigall.github.io/EmissoraVHF/",
+  "screenshots": [
+    {
+      "name": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1050
+      },
+      "title": "Emissora VHF · simulador",
+      "pageErrors": []
+    },
+    {
+      "name": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "title": "Emissora VHF · simulador",
+      "pageErrors": []
+    }
+  ],
+  "publishedStatus": 200
+}

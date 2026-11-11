@@ -1,0 +1,41 @@
+name: Captures del README
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/readme-previews.yml'
+      - '.github/scripts/readme-preview.cjs'
+permissions:
+  contents: write
+concurrency:
+  group: readme-previews
+  cancel-in-progress: false
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Instal·la Chromium per a les captures
+        run: |
+          npm install --prefix .readme-browser --no-package-lock playwright@1.64.1
+          .readme-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Captura l’aplicació real
+        run: node .github/scripts/readme-preview.cjs
+      - name: Desa les captures al repositori
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm --ignore-unmatch docs/images/desktop.png docs/images/mobile.png dist/docs/images/desktop.png dist/docs/images/mobile.png
+          git add docs/images
+          if [ -d dist/docs/images ]; then git add dist/docs/images; fi
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'docs: actualitza les captures reals del PWA'
+          git pull --rebase origin main
+          git push origin HEAD:main

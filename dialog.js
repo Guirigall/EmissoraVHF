@@ -3,6 +3,7 @@
 import {stations,byId} from './stations.js';
 import {info} from './channels.js';
 import {VAR,HELP,MARINA,TOPICS,SMALL,PLACES} from './chatter.js';
+import {t as tr,PROWORDS} from './i18n.js';
 
 export function normalize(text){
  return String(text||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase()
@@ -22,99 +23,65 @@ export function has(t,list){
 }
 
 const K={
- check:['prova de radio','prova radio','prova de comunicacio','proves de radio','radio check','radiocheck','prueba de radio','prueba radio','comprobacion de radio','como me recibe','como me recibes','como me copia','com em rep','com em reps','com em rebeu','how do you read','how do you copy','how copy'],
- berth:['lloc per','una placa','placa per','espai per','passar la nit','quedar nos','pantalan','amarres','sitio para','hueco','pasar la noche','quedarnos','moor','space for','overnight','amarrament','amarrar','amarratge','amarrem','placa','pantala','atracar','atraque','amarre','amarrar','berth','mooring','a space','slip'],
- fuel:['carburant','omplir el diposit','llenar el deposito','fill up','petrol','combustible','gasoil','gasolina','benzina','benzinera','diesel','fuel','gasolinera','repostar'],
- weather:['meteorologia','meteorologica','temps fara','que tiempo','como esta el tiempo','que temps','fara vent','onatge','oleaje','meteo','previsio','el temps','quin temps','parte','tiempo','prevision','weather','forecast'],
- enter:['entrar','entrada','entrant','entrem','entrando','enter','entering','inbound'],
- leave:['marxar','marxem','ens n anem','irnos','nos vamos','zarpar','salpar','cast off','sortir','sortida','sortint','sortim','salir','salida','saliendo','leave','leaving','depart','departing','outbound'],
- bye:['fins ara','fins despres','hasta luego','see you','canvi i fora','cambio y fuera','over and out','fora','out','gracies','moltes gracies','gracias','muchas gracias','thank you','thanks','adeu','adios','bye'],
- repeat:['repeteixi','repeteix','repetiu','repita','repite','say again','repeat'],
- where:['on sou ara','on heu fondejat','donde andais','donde habeis fondeado','where are you anchored','on sou','on esteu','on estas','on ets','donde estais','donde estas','donde esta','where are you'],
- how:['com anem','com us va','que tal tot','como va','como os va','how s it going','how are things','whats up','com va','com esteu','com estas','que tal','como estais','como estas','how are you','how is it','hows it'],
- plan:['on anireu','cap on aneu','adonde vais','where are you going','dema','que fareu','plans','manana','que hareis','tomorrow','plan','plans'],
- cancel:['cancel','cancelo','cancello','cancela','cancelem','anulo','tot correcte','tot be','todo bien','all ok','all good','falsa alarma','false alarm'],
+ check:['essai radio','essai de radio','comment me recevez vous','comment me recevez','me recevez vous','prova de radio','prova radio','prova de comunicacio','proves de radio','radio check','radiocheck','prueba de radio','prueba radio','comprobacion de radio','como me recibe','como me recibes','como me copia','com em rep','com em reps','com em rebeu','how do you read','how do you copy','how copy'],
+ berth:['une place','place pour','amarrage','anneau','poste d amarrage','passer la nuit','pour la nuit','lloc per','una placa','placa per','espai per','passar la nit','quedar nos','pantalan','amarres','sitio para','hueco','pasar la noche','quedarnos','moor','space for','overnight','amarrament','amarrar','amarratge','amarrem','placa','pantala','atracar','atraque','amarre','amarrar','berth','mooring','a space','slip'],
+ fuel:['carburant','gazole','essence','faire le plein','carburant','omplir el diposit','llenar el deposito','fill up','petrol','combustible','gasoil','gasolina','benzina','benzinera','diesel','fuel','gasolinera','repostar'],
+ weather:['meteo','previsions','quel temps','bulletin','meteorologia','meteorologica','temps fara','que tiempo','como esta el tiempo','que temps','fara vent','onatge','oleaje','meteo','previsio','el temps','quin temps','parte','tiempo','prevision','weather','forecast'],
+ enter:['entrer','entree','nous entrons','rentrer au port','entrar','entrada','entrant','entrem','entrando','enter','entering','inbound'],
+ leave:['sortir','sortie','partir','appareiller','nous partons','marxar','marxem','ens n anem','irnos','nos vamos','zarpar','salpar','cast off','sortir','sortida','sortint','sortim','salir','salida','saliendo','leave','leaving','depart','departing','outbound'],
+ bye:['termine','merci','au revoir','a plus tard','fins ara','fins despres','hasta luego','see you','canvi i fora','cambio y fuera','over and out','fora','out','gracies','moltes gracies','gracias','muchas gracias','thank you','thanks','adeu','adios','bye'],
+ repeat:['repetez','repetez s il vous plait','repeteixi','repeteix','repetiu','repita','repite','say again','repeat'],
+ where:['ou etes vous','ou es tu','vous etes ou','on sou ara','on heu fondejat','donde andais','donde habeis fondeado','where are you anchored','on sou','on esteu','on estas','on ets','donde estais','donde estas','donde esta','where are you'],
+ how:['comment ca va','ca va','comment allez vous','com anem','com us va','que tal tot','como va','como os va','how s it going','how are things','whats up','com va','com esteu','com estas','que tal','como estais','como estas','how are you','how is it','hows it'],
+ plan:['demain','vous allez ou','quels sont vos plans','on anireu','cap on aneu','adonde vais','where are you going','dema','que fareu','plans','manana','que hareis','tomorrow','plan','plans'],
+ cancel:['annule','j annule','annulation','tout va bien','fausse alerte','cancel','cancelo','cancello','cancela','cancelem','anulo','tot correcte','tot be','todo bien','all ok','all good','falsa alarma','false alarm'],
  mayday:['mayday','may day','maydei','mei dei','meidei','maide','mayde'],
  panpan:['pan pan','panpan','pam pam','pan pam'],
- securite:['securite','security','seguridad','seguretat'],
- identify:['aqui','this is','aca','de aqui'],
- over:['canvi','cambio','over'],
- water:['aigua i llum','electricitat','presa de corrent','corrent electric','agua y luz','electricidad','toma de corriente','shore power','electricity','water and power'],
- shower:['dutxa','dutxes','lavabos','ducha','duchas','aseos','shower','showers','toilets'],
- laundry:['bugaderia','rentadora','rentar la roba','lavanderia','lavadora','laundry','washing machine'],
- price:['preus','quant costaria','cuanto costaria','preu','quant costa','quant val','tarifa','precio','cuanto cuesta','cuanto vale','price','how much'],
- hours:['horari','a quina hora','quan obre','quan tanca','horario','a que hora','cuando abre','cuando cierra','opening hours','what time'],
- arrive:['som a la bocana','ja som aqui','estem arribant','arribem ara','som a l entrada','llegando','estamos llegando','estamos en la bocana','at the entrance','arriving now','we are arriving'],
- restaurant:['restaurant','restaurante','on podem sopar','donde cenar','where to eat'],
- allStations:['a totes les estacions','a todas las estaciones','all stations'],
+ securite:['securite','securite','security','seguridad','seguretat'],
+ identify:['ici','aqui','this is','aca','de aqui'],
+ over:['a vous','canvi','cambio','over'],
+ water:['eau et electricite','electricite','prise de courant','aigua i llum','electricitat','presa de corrent','corrent electric','agua y luz','electricidad','toma de corriente','shore power','electricity','water and power'],
+ shower:['douche','douches','sanitaires','dutxa','dutxes','lavabos','ducha','duchas','aseos','shower','showers','toilets'],
+ laundry:['laverie','machine a laver','bugaderia','rentadora','rentar la roba','lavanderia','lavadora','laundry','washing machine'],
+ price:['combien','prix','tarif','ca coute','preus','quant costaria','cuanto costaria','preu','quant costa','quant val','tarifa','precio','cuanto cuesta','cuanto vale','price','how much'],
+ hours:['horaires','a quelle heure','quand ouvre','quand ferme','horari','a quina hora','quan obre','quan tanca','horario','a que hora','cuando abre','cuando cierra','opening hours','what time'],
+ arrive:['nous arrivons','a l entree du port','on arrive','som a la bocana','ja som aqui','estem arribant','arribem ara','som a l entrada','llegando','estamos llegando','estamos en la bocana','at the entrance','arriving now','we are arriving'],
+ restaurant:['restaurant','ou manger','restaurant','restaurante','on podem sopar','donde cenar','where to eat'],
+ allStations:['a toutes les stations','a totes les estacions','a todas las estaciones','all stations'],
 };
-const NUM={u:1,un:1,una:1,dos:2,dues:2,tres:3,quatre:4,cinc:5,sis:6,set:7,vuit:8,nou:9,deu:10,onze:11,dotze:12,tretze:13,catorze:14,quinze:15,setze:16,disset:17,divuit:18,dinou:19,vint:20,
+const NUM={u:1,un:1,una:1,dos:2,dues:2,tres:3,quatre:4,cinc:5,sis:6,set:7,vuit:8,nou:9,deu:10,onze:11,dotze:12,tretze:13,catorze:14,quinze:15,setze:16,disset:17,divuit:18,dinou:19,vint:20,une:1,deux:2,trois:3,quatre:4,cinq:5,sept:7,huit:8,neuf:9,dix:10,douze:12,treize:13,quatorze:14,seize:16,vingt:20,
  uno:1,cuatro:4,cinco:5,seis:6,siete:7,ocho:8,nueve:9,diez:10,once:11,doce:12,trece:13,catorce:14,quince:15,dieciseis:16,diecisiete:17,dieciocho:18,diecinueve:19,veinte:20,
  one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,eighteen:18,nineteen:19,twenty:20};
+// Paraules curtes que s'assemblen a números («pour» ~ «four») i no ho són.
+const STOP=new Set(['pour','para','pero','avec','with','from','sota','sous','tres','sobre','dels','dues','unes']);
 function numberBefore(t,units){
  const w=t.split(' ');
  for(let i=0;i<w.length;i++){if(!units.includes(w[i]))continue;
   for(let j=i-1;j>=Math.max(0,i-2);j--){if(/^\d+$/.test(w[j]))return +w[j];if(NUM[w[j]]!==undefined)return NUM[w[j]];
    // Números mal escrits o mal reconeguts («onse», «dotse»...).
-   if(w[j].length>=4){const k=Object.keys(NUM).find(n=>n.length>=4&&Math.abs(n.length-w[j].length)<=1&&lev(n,w[j])<=1);if(k)return NUM[k]}}}
+   if(w[j].length>=4&&!STOP.has(w[j])){const k=Object.keys(NUM).find(n=>n.length>=4&&Math.abs(n.length-w[j].length)<=1&&lev(n,w[j])<=1);if(k)return NUM[k]}}}
  return null;
 }
 export function parseLength(raw){
- const m=String(raw).toLowerCase().match(/(\d+(?:[.,]\d+)?)\s*(m|mts|metres|metros|meters|metre|metro|meter|peus|pies|feet|ft)\b/);
- if(m){const v=parseFloat(m[1].replace(',','.'));return /peu|pie|feet|ft/.test(m[2])?Math.round(v*.3048*10)/10:v}
+ const m=normalize(String(raw).replace(/(\d),(\d)/g,'$1.$2').replace(/\./g,'dot')).replace(/dot/g,'.').match(/(\d+(?:[.]\d+)?)\s*(m|mts|metres|metros|meters|metre|metro|meter|peus|pies|feet|ft|pieds)\b/);
+ if(m){const v=parseFloat(m[1].replace(',','.'));return /peu|pie|feet|ft|pied/.test(m[2])?Math.round(v*.3048*10)/10:v}
  const t=normalize(raw),v=numberBefore(t,['metres','metros','meters','metre','metro','meter']);
- if(v!==null)return v;const f=numberBefore(t,['peus','pies','feet']);return f===null?null:Math.round(f*.3048*10)/10;
+ if(v!==null)return v;const f=numberBefore(t,['peus','pies','feet','pieds']);return f===null?null:Math.round(f*.3048*10)/10;
 }
 export function parseNights(raw){
- const t=normalize(raw);if(has(t,['una setmana','una semana','a week','one week']))return 7;
- return numberBefore(t,['nit','nits','noche','noches','night','nights','dia','dies','dias','days','day']);
+ const t=normalize(raw);if(has(t,['una setmana','una semana','a week','one week','une semaine']))return 7;
+ return numberBefore(t,['nit','nits','noche','noches','night','nights','dia','dies','dias','days','day','nuit','nuits','jours','jour']);
 }
 export function parsePersons(raw){
  const t=normalize(raw);
- const n=numberBefore(t,['persones','persona','personas','people','persons','person','tripulants','tripulantes','crew','pax','adults','adultos']);
- if(n!==null)return n;const m=t.match(/\b(?:som|somos|we are)\s+(\d+|[a-z]+)\b/);if(m)return /^\d+$/.test(m[1])?+m[1]:NUM[m[1]]??null;
+ const n=numberBefore(t,['persones','persona','personas','people','persons','person','tripulants','tripulantes','crew','pax','adults','adultos','personnes','equipiers','adultes']);
+ if(n!==null)return n;const m=t.match(/\b(?:som|somos|we are|nous sommes)\s+(\d+|[a-z]+)\b/);if(m)return /^\d+$/.test(m[1])?+m[1]:NUM[m[1]]??null;
  return null;
 }
-const POSITION=['milles','milla','millas','miles','mile','nm','posicio','posicion','position','latitud','latitude','longitud','longitude','nord','sud','north','south','norte','east','west','oest','oeste','davant','frente','off','cap','cabo','cape','illa','isla','island','cala','bocana','punta','far','faro','lighthouse'];
-const NATURE=['aigua','via','fuego','foc','incendi','incendio','fire','water','flooding','hundiendo','enfonsem','enfonsant','sinking','home a l aigua','hombre al agua','man overboard','ferit','herido','injured','avaria','averia','engine failure','sense motor','sin motor','encallat','encallado','aground','desarborat','desarbolado','dismasted','abordatge','abordaje','collision'];
+const POSITION=['milles','milla','millas','miles','mile','nm','posicio','posicion','position','latitud','latitude','longitud','longitude','nord','sud','north','south','norte','east','west','oest','oeste','davant','frente','off','cap','cabo','cape','illa','isla','island','cala','bocana','punta','far','faro','lighthouse','milles nautiques','au sud','au nord','ouest','ile','phare'];
+const NATURE=['aigua','via','fuego','foc','incendi','incendio','fire','water','flooding','hundiendo','enfonsem','enfonsant','sinking','home a l aigua','hombre al agua','man overboard','ferit','herido','injured','avaria','averia','engine failure','sense motor','sin motor','encallat','encallado','aground','desarborat','desarbolado','dismasted','abordatge','abordaje','collision','voie d eau','incendie','feu','homme a la mer','blesse','panne','echoue','demate','coule'];
 
 const S={
- ca:{
-  call16:'{v}, aquí {s}. Passi al canal {c}, canvi.',goAhead:'{v}, aquí {s}. Endavant, canvi.',
-  check:'{v}, aquí {s}. {q}, canvi.',check16:'{v}, aquí {s}. {q}. Per a proves de ràdio, si us plau, utilitzi un canal de treball, canvi.',
-  notUnderstood:'{v}, aquí {s}. No l’he entès, repeteixi, canvi.',bye:'{v}, aquí {s}. A vostè, bona navegació. {s} fora.',
-  berthAsk:'{v}, rebut. Quina eslora té l’embarcació i quantes nits es quedarà?, canvi.',berthLength:'{v}, rebut. I l’eslora de l’embarcació?, canvi.',berthNights:'{v}, rebut. Quantes nits es quedarà?, canvi.',
-  berthOk:'{v}, li assignem el pantalà {p}, plaça {n}, per a {nights}. Un mariner l’esperarà a la bocana amb la neumàtica. Truqui’ns al canal 9 quan hi arribi, canvi.',
-  berthFull:'{v}, ho sento, per a {len} metres d’eslora no ens queda plaça. Pot fondejar a Cala Teulera, a l’entrada del port, canvi.',
-  fuel:'{v}, la benzinera és al moll d’espera, oberta de vuit a vuit del vespre. Tenim gasoil i benzina, canvi.',
-  weather:'{v}, aquí {s}. Previsió per a les properes dotze hores: {w}, canvi.',
-  enter:'{v}, aquí {s}. Autoritzat a entrar. Atenció: el ferri Ciutat de Fornells sortirà d’aquí a deu minuts. Mantingui’s a estribord del canal, velocitat màxima cinc nusos, canvi.',
-  leave:'{v}, aquí {s}. Autoritzat a sortir. Ara mateix no hi ha trànsit a la bocana. Bona navegació, canvi.',
-  portBerth:'{v}, per a amarraments contacti amb la Marina de Maó al canal 9, canvi.',
-  sarOnly:'{v}, aquí {s}. Aquest canal és per a tràfic de salvament. Per a altres consultes faci servir el canal 9 o el 72, canvi.',
-  maydayAck:'Mayday {v}, aquí {s}. Rebut mayday. Indiqui la seva posició, la naturalesa del perill i el nombre de persones a bord, canvi.',
-  maydayMore:'Mayday {v}, aquí {s}. Rebut. Necessito {missing}, canvi.',
-  maydayHelp:'Mayday {v}, aquí {s}. Rebut, {persons} a bord. Mobilitzem una embarcació de salvament, temps estimat vint minuts. Tothom amb l’armilla salvavides, preparin la balsa salvavides i mantinguin escolta al canal setze, canvi.',
-  maydayActive:'Mayday {v}, aquí {s}. Rebut. La unitat de rescat és en camí. Mantinguin escolta al setze i informin de qualsevol canvi, canvi.',
-  maydayCancel:'Mayday {v}, aquí {s}. Rebuda la cancel·lació. Fi del tràfic de socors. {s} fora.',
-  dscAck:'Mayday {v}, aquí {s}. Rebuda la seva alerta DSC de socors, amb la posició. Indiqui la naturalesa del perill i el nombre de persones a bord, canvi.',
-  maydayWho:'Estació en perill, aquí {s}. Rebut mayday. Identifiqui’s i indiqui la seva posició, canvi.',
-  panAck:'Pan-pan {v}, aquí {s}. Rebut. Indiqui la seva posició i quina assistència necessita, canvi.',
-  panHelp:'Pan-pan {v}, aquí {s}. Rebut. Avisem un remolcador, que el contactarà al canal deu. Mantingui escolta, canvi.',
-  securite:'{v}, aquí {s}. Rebut el seu avís de seguretat, gràcies. El difondrem, canvi.',
-  yCall16:'{v}, aquí Tramuntana! Passem al setanta-dos, canvi.',yHello:'Ei, {v}! Aquí Tramuntana, et sento perfecte. Com va per allà?, canvi.',
-  yWhere:'Som fondejats a Cala Teulera, a l’entrada del port. Bon fons de sorra i aigua plana, canvi.',
-  yHow:'Tot bé per aquí! A fora bufa una mica de tramuntana, però a la cala no es mou res. I vosaltres?, canvi.',
-  yPlan:'Demà volem sortir cap a Fornells si la tramuntana afluixa. Si voleu, naveguem junts, canvi.',
-  yWeather:'Diuen tramuntana de força quatre a cinc fins al vespre, després afluixa. Jo esperaria a demà, canvi.',
-  yCheck:'{q}, {v}! Cap problema, canvi.',
-  yGeneric:['Rebut, rebut! Aquí fa un dia boníssim, canvi.','Ha, t’entenc! Doncs ens veiem més tard a terra, canvi.','Rebut. Si necessiteu res, som aquí al setanta-dos, canvi.'],
-  yBye:'D’acord, {v}! Bona navegació. Tramuntana fora, tornem al setze.',
-  missing:{position:'la posició',nature:'la naturalesa del perill',persons:'el nombre de persones a bord'},and:' i ',
-  nights:n=>n===1?'una nit':n+' nits',persons:n=>n===1?'una persona':n+' persones',
-  quality:{5:'Et rebo fort i clar, cinc sobre cinc',4:'Et rebo bé, quatre sobre cinc',3:'Et rebo amb soroll, tres sobre cinc'},
-  forecasts:['vent de tramuntana força quatre, ocasionalment cinc al nord de l’illa, maror; visibilitat bona','vent de llebeig força tres, mar arrissada a maror; alguns ruixats a la tarda','vent variable força dos a tres, mar arrissada; bona visibilitat'],
- },
  es:{
   call16:'{v}, aquí {s}. Pase al canal {c}, cambio.',goAhead:'{v}, aquí {s}. Adelante, cambio.',
   check:'{v}, aquí {s}. {q}, cambio.',check16:'{v}, aquí {s}. {q}. Para pruebas de radio, por favor, utilice un canal de trabajo, cambio.',
@@ -150,6 +117,42 @@ const S={
   nights:n=>n===1?'una noche':n+' noches',persons:n=>n===1?'una persona':n+' personas',
   quality:{5:'Le recibo alto y claro, cinco sobre cinco',4:'Le recibo bien, cuatro sobre cinco',3:'Le recibo con ruido, tres sobre cinco'},
   forecasts:['viento de tramontana fuerza cuatro, ocasionalmente cinco al norte de la isla, marejadilla; buena visibilidad','viento del suroeste fuerza tres, rizada a marejadilla; algunos chubascos por la tarde','viento variable fuerza dos a tres, rizada; buena visibilidad'],
+ },
+ fr:{
+  call16:'{v}, ici {s}. Passez sur le canal {c}, à vous.',goAhead:'{v}, ici {s}. Je vous écoute, à vous.',
+  check:'{v}, ici {s}. {q}, à vous.',check16:'{v}, ici {s}. {q}. Pour les essais radio, merci d’utiliser un canal de dégagement, à vous.',
+  notUnderstood:'{v}, ici {s}. Je ne vous ai pas compris, répétez, à vous.',bye:'{v}, ici {s}. Bonne navigation. {s}, terminé.',
+  berthAsk:'{v}, reçu. Quelle est la longueur du bateau et combien de nuits restez-vous ?, à vous.',berthLength:'{v}, reçu. Et la longueur du bateau ?, à vous.',berthNights:'{v}, reçu. Combien de nuits restez-vous ?, à vous.',
+  berthOk:'{v}, nous vous attribuons le ponton {p}, place {n}, pour {nights}. Un marinero vous attendra à l’entrée avec le pneumatique. Appelez-nous sur le canal 9 en arrivant, à vous.',
+  berthFull:'{v}, désolé, pour {len} mètres nous n’avons plus de place. Vous pouvez mouiller à Cala Teulera, à l’entrée du port, à vous.',
+  fuel:'{v}, la station de carburant est sur le quai d’attente, ouverte de huit heures à vingt heures. Gazole et essence, à vous.',
+  weather:'{v}, ici {s}. Prévisions pour les douze prochaines heures : {w}, à vous.',
+  enter:'{v}, ici {s}. Autorisé à entrer. Attention : le ferry Ciutat de Fornells appareille dans dix minutes. Restez sur tribord du chenal, vitesse maximale cinq nœuds, à vous.',
+  leave:'{v}, ici {s}. Autorisé à sortir. Pas de trafic à l’entrée pour le moment. Bonne navigation, à vous.',
+  portBerth:'{v}, pour une place au port, contactez la Marina de Mahon sur le canal 9, à vous.',
+  sarOnly:'{v}, ici {s}. Ce canal est réservé au trafic de sauvetage. Pour le reste, utilisez le canal 9 ou le 72, à vous.',
+  maydayAck:'Mayday {v}, ici {s}. Reçu mayday. Donnez votre position, la nature de la détresse et le nombre de personnes à bord, à vous.',
+  maydayMore:'Mayday {v}, ici {s}. Reçu. Il me faut {missing}, à vous.',
+  maydayHelp:'Mayday {v}, ici {s}. Reçu, {persons} à bord. Nous envoyons une vedette de sauvetage, délai estimé vingt minutes. Tout le monde en gilet de sauvetage, préparez le radeau et restez à l’écoute sur le canal seize, à vous.',
+  maydayActive:'Mayday {v}, ici {s}. Reçu. Le moyen de sauvetage est en route. Restez à l’écoute sur le seize et signalez tout changement, à vous.',
+  maydayCancel:'Mayday {v}, ici {s}. Annulation reçue. Fin du trafic de détresse. {s}, terminé.',
+  dscAck:'Mayday {v}, ici {s}. Votre alerte de détresse ASN avec la position est reçue. Donnez la nature de la détresse et le nombre de personnes à bord, à vous.',
+  maydayWho:'Station en détresse, ici {s}. Reçu mayday. Identifiez-vous et donnez votre position, à vous.',
+  panAck:'Pan-pan {v}, ici {s}. Reçu. Donnez votre position et l’assistance nécessaire, à vous.',
+  panHelp:'Pan-pan {v}, ici {s}. Reçu. Nous prévenons un remorqueur, qui vous contactera sur le canal dix. Restez à l’écoute, à vous.',
+  securite:'{v}, ici {s}. Votre message de sécurité est reçu, merci. Nous allons le rediffuser, à vous.',
+  yCall16:'{v}, ici Tramuntana ! On passe sur le soixante-douze, à vous.',yHello:'Salut {v} ! Ici Tramuntana, je te reçois parfaitement. Ça va par là-bas ?, à vous.',
+  yWhere:'On est au mouillage à Cala Teulera, à l’entrée du port. Bon fond de sable et eau plate, à vous.',
+  yHow:'Tout va bien ici ! Dehors il y a un peu de tramontane, mais dans la crique rien ne bouge. Et vous ?, à vous.',
+  yPlan:'Demain on veut partir vers Fornells si la tramontane faiblit. Si vous voulez, on navigue ensemble, à vous.',
+  yWeather:'Ils annoncent tramontane force quatre à cinq jusqu’au soir, puis ça faiblit. J’attendrais demain, à vous.',
+  yCheck:'{q}, {v} ! Pas de souci, à vous.',
+  yGeneric:['Reçu, reçu ! Ici il fait un temps magnifique, à vous.','Ha, je vois ! On se voit plus tard à terre, à vous.','Reçu. Si vous avez besoin de quelque chose, on est là sur le soixante-douze, à vous.'],
+  yBye:'D’accord {v} ! Bonne navigation. Tramuntana terminé, on repasse sur le seize.',
+  missing:{position:'votre position',nature:'la nature de la détresse',persons:'le nombre de personnes à bord'},and:' et ',
+  nights:n=>n===1?'une nuit':n+' nuits',persons:n=>n===1?'une personne':n+' personnes',
+  quality:{5:'Je vous reçois fort et clair, cinq sur cinq',4:'Je vous reçois bien, quatre sur cinq',3:'Je vous reçois avec du bruit, trois sur cinq'},
+  forecasts:['vent de nord, tramontane force quatre, localement cinq au nord de l’île, mer peu agitée ; bonne visibilité','vent de sud-ouest force trois, mer belle à peu agitée ; quelques averses l’après-midi','vent variable force deux à trois, mer belle ; bonne visibilité'],
  },
  en:{
   call16:'{v}, this is {s}. Go to channel {c}, over.',goAhead:'{v}, this is {s}. Go ahead, over.',
@@ -188,17 +191,6 @@ const S={
   forecasts:['northerly wind force four, occasionally five north of the island, slight sea; good visibility','southwesterly force three, smooth to slight sea; some showers in the afternoon','variable wind force two to three, smooth sea; good visibility'],
  },
 };
-export const TIPS={
- thrice:'Al canal 16, repeteix el nom de l’estació que crides (fins a tres vegades): «Marina de Maó, Marina de Maó, aquí …».',
- identify:'Identifica’t sempre: «… aquí veler {v}».',
- over:'Acaba cada missatge amb «canvi» perquè l’altre sàpiga que ja pot parlar.',
- wrongChannel:'{s} no escolta el canal {c}. Prova el canal {list}.',
- nobody:'Ningú no ha respost. Digues el nom de l’estació que crides, per exemple «Marina de Maó» o «Tramuntana».',
- range:'No t’han sentit: amb potència baixa (1 W) l’abast és curt. Prem H/L per passar a 25 W.',
- distressChannel:'Els missatges de socors es fan al canal 16 (i, si en tens, primer amb el botó vermell DSC).',
- business16:'Al canal 16 només es fa la crida; la conversa continua al canal de treball que t’indiquin.',
- maydayReal:'Això és una simulació. En una emergència real: alerta DSC i mayday al canal 16, o truca al 112.',
-};
 const fill=(s,vars)=>s.replace(/\{(\w+)\}/g,(_,k)=>vars[k]??'');
 const hash=s=>[...String(s)].reduce((h,c)=>(h*31+c.charCodeAt(0))>>>0,7);
 
@@ -206,13 +198,14 @@ export function newState(){return {conv:{},shown:{}}}
 export const RANGE={hi:25,lo:5};
 
 // input: {text, channel, lang, power:'hi'|'lo', vessel, state, random}
-export function respond({text,channel,lang='ca',power='hi',vessel='Xaloc',state=newState(),random=Math.random,heard=[]}){
- const L=S[lang]||S.ca,t=normalize(text),out={replies:[],tips:[],state};
+// ui: idioma de la interfície (per als consells). lang: llengua de ràdio (castellà, anglès o francès).
+export function respond({text,channel,lang='es',ui='ca',power='hi',vessel='Xaloc',state=newState(),random=Math.random,heard=[]}){
+ const L=S[lang]||S.es,t=normalize(text),out={replies:[],tips:[],state};
  if(!t)return out;
- const tip=(key,vars={})=>{out.tips.push(fill(TIPS[key],{v:vessel,...vars}))};
+ const tip=(key,vars={})=>{out.tips.push(tr('tip.'+key,{v:vessel,over:(PROWORDS[lang]||PROWORDS.es).over,...vars},ui))};
  const once=(key,vars)=>{if(state.shown[key])return;state.shown[key]=true;tip(key,vars)};
  const ch=info(channel),effPower=ch.lowPowerOnly?'lo':power;
- const nameOf=st=>typeof st.name==='string'?st.name:st.name[lang]||st.name.ca;
+ const nameOf=st=>typeof st.name==='string'?st.name:st.name[lang]||st.name.es;
  // Tria una variant (base + VAR) sense repetir la darrera que ha dit aquella estació.
  const choose=(conv,opts)=>{let c=opts[Math.floor(random()*opts.length)];if(opts.length>1&&c===conv.lastTemplate)c=opts[(opts.indexOf(c)+1)%opts.length];conv.lastTemplate=c;return c};
  const emit=(st,text,replyLang=lang)=>{const conv=state.conv[st.id]||={stage:'idle'};conv.last=text;out.replies.push({station:st.id,text,lang:replyLang,...(st.voice&&st.kind==='heard'?{name:st.name,voice:st.voice}:{})})};
@@ -222,7 +215,7 @@ export function respond({text,channel,lang='ca',power='hi',vessel='Xaloc',state=
  const marina=(st,key,vars={})=>{const conv=state.conv[st.id]||={stage:'idle'};emit(st,fill(choose(conv,MARINA[lang][key]),{v:vessel,s:nameOf(st),...vars}))};
  const question=/\?|^(que|qu|com|on|quan|per que|quant|quin|quina|como|donde|cuando|cuanto|cual|what|where|when|how|why|which|do you|are you|is there)\b/.test(String(text).toLowerCase().trim())||/\?/.test(text);
  // Conversa informal: es tria el tema pel que s'ha dit. La gent del trànsit parla la seva pròpia llengua.
- const smallTalk=st=>{const sl=st.kind==='heard'?st.lang:lang,L2=SMALL[sl]||SMALL.ca,conv=state.conv[st.id]||={stage:'idle'};
+ const smallTalk=st=>{const sl=st.kind==='heard'?st.lang:lang,L2=SMALL[sl]||SMALL.es,conv=state.conv[st.id]||={stage:'idle'};
   const topic=(['where','how','plan'].find(k=>has(t,K[k])))||['favor','fish','food','weather','swim','wildlife','boat','help','thanks','greet'].find(k=>has(t,TOPICS[k]));
   const key=topic||(question?'question':'generic');
   emit(st,fill(choose(conv,L2[key]),{v:vessel,place:PLACES[Math.floor(random()*PLACES.length)]}),sl)};
@@ -243,7 +236,7 @@ export function respond({text,channel,lang='ca',power='hi',vessel='Xaloc',state=
   if(distress==='mayday')once('maydayReal');
  }else if(addressed){
   if(addressed.st.listen.includes(channel))responder=addressed.st;
-  else{tip('wrongChannel',{s:addressed.st.name.ca,c:channel,list:addressed.st.listen.join(' o el ')});return out}
+  else{tip('wrongChannel',{s:typeof addressed.st.name==='string'?addressed.st.name:addressed.st.name[ui]||addressed.st.name.es,c:channel,list:addressed.st.listen.join(tr('tip.or',{},ui))});return out}
  }else{
   responder=[...stations,...people].find(st=>{const c=state.conv[st.id];return c&&c.stage!=='idle'&&c.stage!=='closed'&&(c.channel===channel||st.work===channel&&c.stage==='switch')})||null;
   // Al seu canal de treball, l'estació respon encara que no l'hagis anomenada.
@@ -265,7 +258,7 @@ export function respond({text,channel,lang='ca',power='hi',vessel='Xaloc',state=
 
  const st=responder,conv=state.conv[st.id]||={stage:'idle'};
  const intent=['repeat','check','price','berth','fuel','water','shower','laundry','hours','arrive','restaurant','weather','enter','leave','where','how','plan','bye'].find(k=>has(t,K[k]))||null;
- if(st.kind==='heard'){conv.stage='open';conv.channel=channel;if(intent==='bye'){emit(st,{ca:'Fins després! Canvi i fora.',es:'¡Hasta luego! Cambio y fuera.',en:'See you later! Over and out.'}[st.lang]||'Fora.',st.lang);conv.stage='closed'}else smallTalk(st);return out}
+ if(st.kind==='heard'){conv.stage='open';conv.channel=channel;if(intent==='bye'){emit(st,{es:'¡Hasta luego! Cambio y fuera.',en:'See you later! Over and out.',fr:'À plus tard ! Terminé.'}[st.lang]||'Fora.',st.lang);conv.stage='closed'}else smallTalk(st);return out}
 
  if(st.kind==='sar'&&distress)return distressFlow();
  if(st.kind==='sar'&&conv.stage?.startsWith('mayday')&&has(t,K.cancel)){say(st,'maydayCancel');conv.stage='closed';return out}
@@ -350,8 +343,8 @@ export function respond({text,channel,lang='ca',power='hi',vessel='Xaloc',state=
 }
 
 // Alerta DSC de socors (botó DISTRESS): inclou la posició GPS; Salvament respon al canal 16.
-export function dscAlert({lang='ca',vessel='Xaloc',state=newState()}){
- const L=S[lang]||S.ca,st=byId('sar'),conv=state.conv.sar={stage:'mayday-info',channel:16,data:{position:true}};
+export function dscAlert({lang='es',ui='ca',vessel='Xaloc',state=newState()}){
+ const L=S[lang]||S.es,st=byId('sar'),conv=state.conv.sar={stage:'mayday-info',channel:16,data:{position:true}};
  const text=fill(L.dscAck,{v:vessel,s:st.name[lang]||st.name.ca});conv.last=text;
- return {replies:[{station:'sar',text,lang}],tips:[TIPS.maydayReal],state};
+ return {replies:[{station:'sar',text,lang}],tips:[tr('tip.maydayReal',{},ui)],state};
 }

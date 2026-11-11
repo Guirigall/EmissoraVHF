@@ -3,7 +3,7 @@ import {Traffic,generate,voiceChannels,lineDuration} from '../traffic.js';
 test('Converses generades: variades, ben formades i amb torns alternats',()=>{
  const texts=new Set();
  for(let i=0;i<200;i++)for(const ch of voiceChannels){const ex=generate(ch);assert.ok(ex.length>=1);
-  for(const [j,l] of ex.entries()){assert.ok(['ca','es','en'].includes(l.who.lang));assert.doesNotMatch(l.text,/[{}]|undefined|NaN/);assert.ok(lineDuration(l)<20000,l.text.slice(0,40));texts.add(l.text);
+  for(const [j,l] of ex.entries()){assert.ok(['es','en','fr'].includes(l.who.lang),'llengua de veu: '+l.who.lang);assert.doesNotMatch(l.text,/[{}]|undefined|NaN/);assert.ok(lineDuration(l)<20000,l.text.slice(0,40));texts.add(l.text);
    if(j&&[72,77].includes(ch))assert.notEqual(l.who,ex[j-1].who,'la mateixa persona parla dos cops seguits')}}
  assert.ok(texts.size>1500,'frases diferents: '+texts.size);
 });

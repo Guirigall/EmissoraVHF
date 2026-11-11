@@ -54,11 +54,11 @@ Són escenaris ficticis del simulador, no una guia dels canals reals del port.
 | 13 | Vaixells grans coordinant maniobres (en anglès). |
 | 20 | Butlletí meteorològic de la ràdio costanera. |
 | 67 | Comitè de regata. |
-| 72, 77 | Navegants i pescadors xerrant (català i castellà). El veler *Tramuntana* hi contesta. |
+| 72, 77 | Navegants i pescadors xerrant (castellà, francès i anglès). El veler *Tramuntana* hi contesta. |
 | 8, 69, 73… | Converses llunyanes que no s’entenen. |
 | 70, 87, 88 | Dades DSC i AIS: només ràfegues, no s’hi pot parlar. |
 
-Les estacions responen en la llengua que triïs a **Configuració** (català, castellà o anglès), segons on les cridis, què demanis i la potència. Si oblides dir «canvi» o identificar-te, el registre et dona un consell. Si canvies de canal mentre et responen, et perds la resposta.
+L’aplicació es pot fer servir en català, castellà, anglès o francès (selector a dalt a la dreta). Les comunicacions per ràdio són en castellà, anglès o francès, a triar a **Configuració**: el català no hi és perquè les veus sintètiques catalanes sonen malament. Les estacions responen segons on les cridis, què demanis i la potència. Si oblides acabar amb «cambio», «over» o «à vous», o identificar-te, el registre et dona un consell. Si canvies de canal mentre et responen, et perds la resposta.
 
 ### Converses variades
 
@@ -72,7 +72,7 @@ Les converses de fons es generen sobre la marxa: vaixells, persones, cales, teme
 ### Límits
 
 - El reconeixement de veu és el del navegador: Chrome i Edge el tenen (envien l’àudio als seus servidors i necessiten Internet); Firefox no. Sense reconeixement, fes servir el text.
-- Les veus són les instal·lades al sistema. Si no n’hi ha cap de catalana, les frases en català es llegeixen amb una altra veu.
+- Les veus són les instal·lades al sistema (Chrome n’inclou en castellà, anglès i francès).
 - Les veus sintètiques no passen pel filtre de ràdio (el navegador no ho permet). L’estàtica, el squelch, els clics i les veus llunyanes sí que es generen amb filtre de ràdio.
 - Les estacions, els vaixells i els diàlegs són inventats i simplificats. No substitueix la formació per al títol d’operador de ràdio ni s’ha d’usar per navegar. En una emergència real, truca al 112.
 
@@ -125,11 +125,11 @@ Son escenarios ficticios del simulador, no una guía de asignaciones reales del 
 | 13 | Coordinación de grandes buques en inglés. |
 | 20 | Boletín meteorológico de la estación costera. |
 | 67 | Comité de regatas. |
-| 72, 77 | Navegantes y pescadores en catalán y español; responde el velero *Tramuntana*. |
+| 72, 77 | Navegantes y pescadores en español, francés e inglés; responde el velero *Tramuntana*. |
 | 8, 69, 73… | Conversaciones lejanas e ininteligibles. |
 | 70, 87, 88 | Ráfagas de datos DSC/AIS; no admiten voz. |
 
-En **Configuració**, elige catalán, español o inglés para las respuestas. Las estaciones tienen en cuenta el canal, la petición y la potencia. El registro ofrece consejos si olvidas identificarte o decir «cambio». Si cambias de canal durante una respuesta, dejarás de oírla.
+La aplicación está en catalán, español, inglés o francés (selector arriba a la derecha). En **Configuración**, elige español, inglés o francés para las comunicaciones por radio. Las estaciones tienen en cuenta el canal, la petición y la potencia. El registro ofrece consejos si olvidas identificarte o decir «cambio». Si cambias de canal durante una respuesta, dejarás de oírla.
 
 Las conversaciones de fondo varían: barcos, personas, calas, fondeo, pesca, cenas, previsiones, averías, delfines, medusas, amarres, ferris, regatas y seguridad. Puedes dirigirte por su nombre a una persona o un barco que acabas de escuchar y responderá en su idioma.
 
@@ -142,7 +142,7 @@ El **modo Claude**, opcional en configuración, utiliza una clave de API de Anth
 ### Límites
 
 - El reconocimiento de voz depende del navegador. En esta aplicación, Chrome y Edge envían el audio a sus servidores y necesitan conexión; Firefox requiere la alternativa de texto.
-- Las voces son las instaladas en el sistema. Si falta una voz catalana, se usa otra voz.
+- Las voces son las instaladas en el sistema (Chrome incluye español, inglés y francés).
 - La voz sintetizada no pasa por el filtro de radio; la estática, el squelch, los clics y las voces lejanas sí tienen ese efecto.
 - Estaciones, barcos y diálogos son inventados y simplificados. No sustituye la formación de radiooperador ni debe utilizarse para navegar. En una emergencia real, llama al 112.
 
@@ -195,11 +195,11 @@ These are fictional simulator scenarios, not a guide to actual harbour channel a
 | 13 | Large vessels coordinating manoeuvres in English. |
 | 20 | Coastal radio weather bulletin. |
 | 67 | Race committee. |
-| 72, 77 | Sailors and fishers chatting in Catalan and Spanish; the yacht *Tramuntana* answers. |
+| 72, 77 | Sailors and fishers chatting in Spanish, French and English; the yacht *Tramuntana* answers. |
 | 8, 69, 73… | Unintelligible distant conversations. |
 | 70, 87, 88 | DSC/AIS data bursts; no voice communication. |
 
-Choose Catalan, Spanish or English for replies in **Configuració**. Stations respond according to channel, request and power. The log offers advice if you forget your identification or “over”. Changing channel during a reply means you will miss it.
+The app is available in Catalan, Spanish, English and French (selector at the top right). In **Settings**, choose Spanish, English or French for radio communications. Stations respond according to channel, request and power. The log offers advice if you forget your identification or “over”. Changing channel during a reply means you will miss it.
 
 Background conversations vary in vessels, people, coves and topics: anchoring, fishing, meals, forecasts, breakdowns, dolphins, jellyfish, berths, ferries, races and safety. Address a person or boat you have just heard by name and they will answer in their language.
 
@@ -212,7 +212,7 @@ Optional **Claude mode**, enabled in settings, requires an Anthropic API key sto
 ### Limitations
 
 - Speech recognition depends on the browser. In this app, Chrome and Edge send audio to their servers and require Internet; Firefox users can use text instead.
-- Speech synthesis uses system voices. If a Catalan voice is unavailable, another voice is used.
+- Speech synthesis uses system voices (Chrome includes Spanish, English and French).
 - Synthesized speech bypasses the radio filter because of browser API limitations. Static, squelch, clicks and distant voices use radio effects.
 - Stations, vessels and dialogue are fictional and simplified. This does not replace radiooperator training and must not be used for navigation. In a real emergency, call 112.
 

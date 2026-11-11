@@ -1,5 +1,5 @@
 // Veu: síntesi (respostes i trànsit) i reconeixement (el que dius amb el PTT premut).
-const LOCALE={ca:'ca-ES',es:'es-ES',en:'en-GB'};
+const LOCALE={es:'es-ES',en:'en-GB',fr:'fr-FR'};
 const synth=globalThis.speechSynthesis;
 let voices=[];
 function loadVoices(){voices=synth?.getVoices()||[]}
@@ -16,7 +16,7 @@ export function voicesFor(lang){return voices.filter(v=>v.lang?.toLowerCase().re
 export function hasVoice(lang){return voicesFor(lang).length>0}
 // Tria una veu estable per a cada persona (seed), i si no n'hi ha de la llengua, una de propera.
 function pick(lang,seed){
- const pool=voicesFor(lang).length?voicesFor(lang):lang==='ca'&&voicesFor('es').length?voicesFor('es'):voicesFor('en');
+ const pool=voicesFor(lang).length?voicesFor(lang):voicesFor('en');
  if(!pool.length)return null;
  const local=pool.filter(v=>v.localService);const list=local.length>1?local:pool;
  return list[[...seed].reduce((h,c)=>h+c.charCodeAt(0),0)%list.length];

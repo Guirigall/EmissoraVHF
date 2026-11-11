@@ -5,52 +5,52 @@ const int=(r,a,b)=>a+Math.floor(r()*(b-a+1));
 const fill=(text,v)=>text.replace(/\{(\w+)\}/g,(m,k)=>v[k]??m);
 
 const NAMES={
- ca:['Estel','Bonaventura','Sa Rata','Llebeig','Garbí','Mestral','Gregal','Ponent','Alcatràs','Corb Marí','Sa Boira','Lluna Plena','Rosa dels Vents','Pardal','Tortuga','Aire de Mar','Es Grau','Cap Negre','Sa Pedrera','Lloseta','Marinada','Dofí','Sa Perdiu','Es Freu'],
- es:['Nou Rosario','Virgen del Carmen','Gavina','Siroco','Delfín','Paloma','Alba','Brisa','Mar Serena','Atlántida','Peregrina','Neptuno','Caracola','Sa Mola'],
+ es:['Estel','Bonaventura','Sa Rata','Llebeig','Garbí','Mestral','Gregal','Ponent','Alcatràs','Corb Marí','Sa Boira','Lluna Plena','Rosa dels Vents','Pardal','Tortuga','Aire de Mar','Es Grau','Cap Negre','Sa Pedrera','Lloseta','Marinada','Dofí','Sa Perdiu','Es Freu'],
+ fr:['Mistral','Albatros','Belle-Île','Galatée','Kerlouan','Pen Duick IX','Fleur de Sel','Marie-Galante','Ondine','Sirène','Grand Largue','Alizé'],
+ es2:['Nou Rosario','Virgen del Carmen','Gavina','Siroco','Delfín','Paloma','Alba','Brisa','Mar Serena','Atlántida','Peregrina','Neptuno','Caracola','Sa Mola'],
  en:['Blue Heron','Lady Anne','Sea Breeze','Wanderlust','Morning Star','Kestrel','Seraphina','Aurora','Free Spirit','Calypso','North Wind','Odyssey','Moonshadow','Pelican'],
 };
-const PEOPLE={ca:['Joan','Marta','Pere','Núria','Jordi','Aina','Biel','Maria','Llorenç','Xisca','Carme','Tòfol'],es:['Pep','Toni','Paco','Lucía','Carmen','Javi','Rafa','Elena','Manolo','Sergio','Inés','Quique'],en:['Tom','Sarah','Mike','Emma','James','Kate','Oliver','Anna']};
+const PEOPLE={fr:['Pierre','Sophie','Yann','Claire','Julien','Camille','Hervé','Lucie','Marc','Anne'],es:['Joan','Marta','Núria','Jordi','Aina','Biel','Llorenç','Xisca','Pep','Toni','Paco','Lucía','Carmen','Javi','Rafa','Elena','Manolo','Sergio','Inés','Quique'],en:['Tom','Sarah','Mike','Emma','James','Kate','Oliver','Anna']};
 const PLACES=['Cala Teulera','Cala en Porter','Fornells','Ciutadella','Addaia','Sa Mesquida','Es Grau','Cala Turqueta','l’illa de l’Aire','el cap de Favàritx','Punta Prima','Binibeca','Cala Mitjana','Cala Macarella','l’illa d’en Colom','Cala Pregonda','Cala Galdana','Cala Morell'];
 const FERRIES=['Ciutat de Fornells','Illa de Llevant','Mar de Maó','Golf de Ponent'];
 const CARGO=['Atlantic Star','Nordic Pearl','Sea Venture','Hellas Spirit','Baltic Wind'];
 const PONTOONS='ABCDE';
 
 export function makeSpeaker(name,lang,r,signal){return {name,lang,pitch:+(0.75+r()*.55).toFixed(2),rate:+(0.96+r()*.16).toFixed(2),signal:signal??+(0.35+r()*.6).toFixed(2)}}
-const vessel=(r,lang)=>pick(r,NAMES[lang]);
+const vessel=(r,lang)=>pick(r,lang==='es'?[...NAMES.es,...NAMES.es2]:NAMES[lang]);
 
 /* ---------- Converses entre vaixells (72, 77) ---------- */
 const CHAT={
- ca:{
-  call:['{B}, {B}, aquí {A}, m’escoltes? Canvi.','{B}, aquí {A}, canvi.','Ei {B}, aquí {A}. Hi ets? Canvi.'],
-  answer:['{A}, et sento perfecte. Digues, canvi.','Aquí {B}. Et rebo bé, endavant, canvi.','Hola {A}! Et sento una mica fluix, però endavant, canvi.'],
+ fr:{
+  call:['{B}, {B}, ici {A}, tu me reçois ? À vous.','{B}, ici {A}, à vous.','{B}, ici {A}. Tu es là ? À vous.'],
+  answer:['{A}, je te reçois cinq sur cinq. Vas-y, à vous.','Ici {B}. Je te reçois bien, parle, à vous.','Salut {A} ! Tu es un peu faible, mais vas-y, à vous.'],
   topics:[
-   ['On sou fondejats ara? Canvi.','Som a {place}. {anchor} Canvi.','{anchorReact} Canvi.'],
-   ['Com ha anat la pesca? Canvi.','{catch} Canvi.','{fishReact} Canvi.'],
-   ['Per què no veniu a sopar a bord? Fem {food}. Canvi.','{accept} Canvi.','Perfecte, us esperem cap a les {hour}. Canvi.'],
-   ['Has sentit el parte? Canvi.','Diuen {wind} força {force} {when}. Canvi.','{plan} Canvi.'],
-   ['Encara teniu problemes amb {repair}? Canvi.','{repairState} Canvi.','{repairOffer} Canvi.'],
-   ['Demà cap on aneu? Canvi.','Volem anar a {place2} si {cond}. Canvi.','{plansReact} Canvi.'],
-   ['Ull, que a {place} hi ha moltes meduses avui. Canvi.','Gràcies per l’avís! Els nens volien banyar-se ara mateix. Canvi.','Millor a la tarda, amb el vent de mar se’n van. Canvi.'],
-   ['Acabem de veure un grup de dofins davant de {place}! Canvi.','Quina sort! Cap on anaven? Canvi.','Cap a llevant, una desena, saltant a la proa. Canvi.'],
-   ['Ens podríeu deixar una mica de gel? Se’ns ha espatllat la nevera. Canvi.','Cap problema, passa amb la neumàtica quan vulguis. Canvi.','Ets un sol, d’aquí a deu minuts som allà. Canvi.'],
+   ['Vous êtes mouillés où, là ? À vous.','On est à {place}. {anchor} À vous.','{anchorReact} À vous.'],
+   ['Alors, la pêche ? À vous.','{catch} À vous.','{fishReact} À vous.'],
+   ['Vous venez dîner à bord ce soir ? On fait {food}. À vous.','{accept} À vous.','Parfait, on vous attend vers {hour}. À vous.'],
+   ['Tu as écouté la météo ? À vous.','Ils annoncent {wind} force {force} {when}. À vous.','{plan} À vous.'],
+   ['Toujours des soucis avec {repair} ? À vous.','{repairState} À vous.','{repairOffer} À vous.'],
+   ['Demain vous allez où ? À vous.','On voudrait aller à {place2} si {cond}. À vous.','{plansReact} À vous.'],
+   ['Attention, il y a plein de méduses à {place} aujourd’hui. À vous.','Merci pour l’info ! Les enfants voulaient se baigner tout de suite. À vous.','Plutôt cet après-midi, avec la brise elles s’en vont. À vous.'],
+   ['On vient de voir des dauphins devant {place} ! À vous.','Quelle chance ! Ils allaient vers où ? À vous.','Vers l’est, une dizaine, ils sautaient à l’étrave. À vous.'],
   ],
-  anchor:['Bon fons de sorra i aigua plana.','Hi ha força gent, però hem trobat lloc.','Està una mica moguda amb el mar de fons.','Hem hagut de fondejar dues vegades, l’àncora no agafava a les algues.'],
-  anchorReact:['Doncs hi anem després de dinar.','Nosaltres ens quedem aquí, que estem molt bé.','Guardeu-nos lloc!','Vigila la posidònia, que hi ha guardes avui.'],
-  catch:['Un parell de {fish} i prou.','Res de res, només algues.','Molt bé! Tres {fish} grossos.','Hem perdut un esquer i encara ens queden ganes.'],
-  fishReact:['Ja és més que nosaltres!','Doncs ja tenim sopar.','Demà a trenc d’alba ho tornem a provar.','Diuen que a {place} piquen més.'],
-  food:['un arròs de peix','una caldereta','sardines a la brasa','una truita de patates','pa amb oli i embotit'],
-  accept:['Fet! Portem el vi.','Ens encantaria, portem les postres.','Avui no podem, que sortim d’hora demà. Un altre dia!','Sí, sí! Quina hora us va bé?'],
-  hour:['set','vuit','dos quarts de nou','les nou'],
-  wind:['tramuntana','llevant','migjorn','ponent','mestral','gregal','xaloc','llebeig'],
-  when:['a la tarda','fins a mitjanit','demà al matí','a partir del migdia'],
-  plan:['Llavors ens quedem al port.','Doncs sortim d’hora i arribem abans que bufi.','Jo m’ho esperaria a demà.','Perfecte per navegar, doncs!'],
-  repair:['la bomba d’aigua del motor','una politja del ganxo','el pilot automàtic','la cadena del molinet','el carregador de bateries'],
-  repairState:['Ja està arreglat, era un fusible.','Encara no, demà ve el mecànic.','Hem fet un apanyo amb cinta americana.','Sí, i ens està fent anar de corcoll.'],
-  repairOffer:['Si necessites eines, en tinc a bord.','Truca a en {person} de la marina, que en sap molt.','Doncs vigileu, que a fora fa vent.'],
-  cond:['la tramuntana afluixa','fa bon temps','el parte no canvia','arribem a temps de la benzinera'],
-  plansReact:['Doncs potser ens hi veiem.','Nosaltres anem cap a {place}.','Avisa’ns quan sortiu.','Bona idea, allà sempre s’hi està bé.'],
-  fish:['dents','orades','llobarros','sards','calamars','raons'],
-  close:['D’acord, {A} fora.','Ens veiem, {A} fora, tornem al 16.','Fins després! {A} fora.'],
+  anchor:['Bon fond de sable et eau plate.','Il y a du monde, mais on a trouvé de la place.','Ça roule un peu avec la houle.','On a dû mouiller deux fois, l’ancre ne croche pas dans les algues.'],
+  anchorReact:['On vient après le déjeuner.','Nous on reste ici, on est très bien.','Gardez-nous une place !','Attention à la posidonie, les gardes passent aujourd’hui.'],
+  catch:['Deux petits {fish}, pas plus.','Rien du tout, que des algues.','Super ! Trois beaux {fish}.','On a perdu un leurre, mais on y croit encore.'],
+  fishReact:['C’est déjà mieux que nous !','Le dîner est assuré alors.','On réessaie demain à l’aube.','Il paraît que ça mord mieux vers {place}.'],
+  food:['une paella','une bouillabaisse maison','des sardines grillées','une omelette','des pâtes au thon'],
+  accept:['Avec plaisir ! On apporte le vin.','Génial, on apporte le dessert.','Pas ce soir, on part tôt demain. Une autre fois !','Oui ! À quelle heure ?'],
+  hour:['dix-neuf heures','vingt heures','vingt heures trente'],
+  wind:['tramontane','vent d’est','vent de sud','vent d’ouest','mistral','vent de nord-est'],
+  when:['cet après-midi','jusqu’à minuit','demain matin','à partir de midi'],
+  plan:['Alors on reste au port.','On part tôt et on arrive avant que ça souffle.','Moi j’attendrais demain.','Parfait pour naviguer alors !'],
+  repair:['la pompe à eau du moteur','le pilote automatique','le guindeau','le chargeur de batteries'],
+  repairState:['C’est réparé, c’était un fusible.','Pas encore, le mécanicien passe demain.','On a bricolé avec du chatterton.','Oui, et ça nous rend fous.'],
+  repairOffer:['Si tu as besoin d’outils, j’en ai à bord.','Demande à {person} à la marina, il s’y connaît.','Faites attention, dehors ça souffle.'],
+  cond:['la tramontane faiblit','il fait beau','la météo ne change pas','on arrive à temps pour le carburant'],
+  plansReact:['On s’y verra peut-être.','Nous on va vers {place}.','Prévenez-nous quand vous partez.','Bonne idée, on y est toujours bien.'],
+  fish:['dentis','daurades','loups','sars','calmars'],
+  close:['D’accord, {A} terminé.','À plus tard, {A} terminé, on repasse sur le seize.','Bonne soirée ! {A} terminé.'],
  },
  es:{
   call:['{B}, {B}, aquí {A}, ¿me recibes? Cambio.','{B}, aquí {A}, cambio.','Oye {B}, aquí {A}. ¿Estás ahí? Cambio.'],
@@ -125,15 +125,14 @@ function chat(r,lang){
 
 /* ---------- Marina (canal 9) ---------- */
 function marina(r){
- const lang=pick(r,['ca','ca','es','en']),name=vessel(r,lang),boat=makeSpeaker(name,lang,r,.6+r()*.35);
- const st=makeSpeaker({ca:'Marina de Maó',es:'Marina de Mahón',en:'Mahon Marina'}[lang],lang,()=>.55,.95);
+ const lang=pick(r,['es','es','fr','en']),name=vessel(r,lang),boat=makeSpeaker(name,lang,r,.6+r()*.35);
+ const st=makeSpeaker({es:'Marina de Mahón',en:'Mahon Marina',fr:'Marina de Mahon'}[lang],lang,()=>.55,.95);
  const len=int(r,8,16),nights=int(r,1,5),p=PONTOONS[Math.min(4,Math.floor(len/4))],n=int(r,2,48),litres=int(r,4,30)*10;
  const T={
-  ca:[[`Marina de Maó, aquí ${name}. Sol·licitem amarrament per a ${nights===1?'una nit':nights+' nits'}, eslora ${len} metres, canvi.`,`${name}, li assignem el pantalà ${p}, plaça ${n}. Un mariner l’espera a la bocana, canvi.`,`Rebut, pantalà ${p}, plaça ${n}. Gràcies, ${name} fora.`],
-      [`Marina de Maó, aquí ${name}. Som al moll de la benzinera, voldríem ${litres} litres de gasoil, canvi.`,`${name}, ara mateix hi ha un vaixell davant. Esperi cinc minuts, canvi.`,`D’acord, esperem al costat. ${name} fora.`],
-      [`Marina, aquí ${name}. Ja som a la bocana, canvi.`,`${name}, vegi la neumàtica vermella a babord, el mariner el guiarà fins a la plaça, canvi.`,`La veiem. Gràcies!`],
-      [`Marina de Maó, aquí ${name}. Quin és el codi de les dutxes? Canvi.`,`${name}, és a la factura de recepció. Passi per l’oficina, oberta fins a les vuit, canvi.`,`Rebut, gràcies.`],
-      [`Marina, aquí ${name}. Sortim ara, ja hem pagat a l’oficina. Gràcies per tot, canvi.`,`${name}, gràcies a vostès. Bona navegació, canvi.`]],
+  fr:[[`Marina de Mahon, ici ${name}. Nous souhaitons une place pour ${nights===1?'une nuit':nights+' nuits'}, longueur ${len} mètres, à vous.`,`${name}, ponton ${p}, place ${n}. Un marinero vous attend à l’entrée, à vous.`,`Reçu, ponton ${p}, place ${n}. Merci, ${name} terminé.`],
+      [`Marina, ici ${name}. Nous sommes au ponton carburant, il nous faudrait ${litres} litres de gazole, à vous.`,`${name}, il y a un bateau devant vous. Patientez cinq minutes, à vous.`,`D’accord, on attend à côté. ${name} terminé.`],
+      [`Marina, ici ${name}. Nous sommes à l’entrée du port, à vous.`,`${name}, repérez le pneumatique rouge sur bâbord, le marinero vous guide jusqu’à la place, à vous.`,`On le voit. Merci !`],
+      [`Marina de Mahon, ici ${name}. Quel est le code des douches ? À vous.`,`${name}, il est sur la facture. Passez au bureau, ouvert jusqu’à vingt heures, à vous.`,`Reçu, merci.`]],
   es:[[`Marina de Mahón, aquí ${name}. Solicitamos amarre para ${nights===1?'una noche':nights+' noches'}, eslora ${len} metros, cambio.`,`${name}, le asignamos el pantalán ${p}, amarre ${n}. Un marinero le espera en la bocana, cambio.`,`Recibido, pantalán ${p}, amarre ${n}. Gracias, ${name} fuera.`],
       [`Marina, aquí ${name}. Estamos en la gasolinera, queremos ${litres} litros de gasoil, cambio.`,`${name}, hay un barco delante. Espere cinco minutos, cambio.`,`De acuerdo, esperamos al lado. ${name} fuera.`],
       [`Marina de Mahón, aquí ${name}. ¿Tienen agua y electricidad en el pantalán ${p}? Cambio.`,`${name}, sí, toma de dieciséis amperios. La tarjeta se recoge en la oficina, cambio.`,`Perfecto, gracias.`]],
@@ -158,12 +157,12 @@ function port(r){
 }
 /* ---------- Canal 16: crides i avisos ---------- */
 function channel16(r){
- const lang=pick(r,['ca','es','es','en']);
+ const lang=pick(r,['es','es','fr','en']);
  if(r()<.2){
-  const sar=makeSpeaker({ca:'Salvament Marítim',es:'Salvamento Marítimo',en:'Maritime Rescue'}[lang],lang,()=>.4,.55);
-  const what={ca:['un contenidor a la deriva','un tronc a la deriva','unes xarxes a la deriva','una boia de senyalització sense llum'],es:['un contenedor a la deriva','un tronco a la deriva','redes a la deriva','una boya de señalización apagada'],en:['a drifting container','a drifting tree trunk','drifting fishing nets','an unlit navigation buoy']}[lang];
-  const where=`${int(r,1,5)} ${({ca:'milles al',es:'millas al',en:'miles'})[lang]} ${pick(r,{ca:['nord','sud','est','oest'],es:['norte','sur','este','oeste'],en:['north','south','east','west']}[lang])} ${({ca:'de',es:'de',en:'of'})[lang]} ${pick(r,PLACES)}`;
-  const text={ca:`Seguretat, seguretat, seguretat. A totes les estacions, aquí Salvament Marítim. Avís als navegants: ${pick(r,what)} a ${where}. Es prega precaució. Escoltin el canal 10. Fora.`,
+  const sar=makeSpeaker({es:'Salvamento Marítimo',en:'Maritime Rescue',fr:'Sauvetage en mer'}[lang],lang,()=>.4,.55);
+  const what={fr:['un conteneur à la dérive','un tronc à la dérive','des filets à la dérive','une bouée de balisage éteinte'],es:['un contenedor a la deriva','un tronco a la deriva','redes a la deriva','una boya de señalización apagada'],en:['a drifting container','a drifting tree trunk','drifting fishing nets','an unlit navigation buoy']}[lang];
+  const where=`${int(r,1,5)} ${({fr:'milles au',es:'millas al',en:'miles'})[lang]} ${pick(r,{fr:['nord','sud','est','ouest'],es:['norte','sur','este','oeste'],en:['north','south','east','west']}[lang])} ${({fr:'de',es:'de',en:'of'})[lang]} ${pick(r,PLACES)}`;
+  const text={fr:`Sécurité, sécurité, sécurité. À toutes les stations, ici Sauvetage en mer. Avis aux navigateurs : ${pick(r,what)} à ${where}. Soyez vigilants. Écoutez le canal 10. Terminé.`,
    es:`Seguridad, seguridad, seguridad. A todas las estaciones, aquí Salvamento Marítimo. Aviso a los navegantes: ${pick(r,what)} a ${where}. Se ruega precaución. Escuchen el canal 10. Fuera.`,
    en:`Securité, securité, securité. All stations, this is Maritime Rescue. Navigational warning: ${pick(r,what)} ${where}. Mariners are requested to keep a sharp lookout. Listen on channel 10. Out.`}[lang];
   return [{who:sar,text}];
@@ -171,13 +170,13 @@ function channel16(r){
  const a=vessel(r,lang),A=makeSpeaker(a,lang,r);
  if(r()<.5){
   let b=vessel(r,lang);while(b===a)b=vessel(r,lang);const B=makeSpeaker(b,lang,r),ch=pick(r,[72,77,69,73,8]);
-  return {ca:[[A,`${b}, ${b}, aquí ${a}, ${a}, canvi.`],[B,`${a}, aquí ${b}. Passem al ${ch}, canvi.`],[A,`${ch}, canvi.`]],
+  return {fr:[[A,`${b}, ${b}, ici ${a}, ${a}, à vous.`],[B,`${a}, ici ${b}. On passe sur le ${ch}, à vous.`],[A,`${ch}, à vous.`]],
    es:[[A,`${b}, ${b}, aquí ${a}, ${a}, cambio.`],[B,`${a}, aquí ${b}. Pasamos al ${ch}, cambio.`],[A,`${ch}, cambio.`]],
    en:[[A,`${b}, ${b}, this is ${a}, ${a}, over.`],[B,`${a}, ${b}. Let’s go to ${ch}, over.`],[A,`${ch}, over.`]]}[lang].map(([who,text])=>({who,text}));
  }
- const st=r()<.6?{name:{ca:'Marina de Maó',es:'Marina de Mahón',en:'Mahon Marina'}[lang],ch:9}:{name:{ca:'Pràctics de Maó',es:'Prácticos de Mahón',en:'Mahon Pilots'}[lang],ch:12};
+ const st=r()<.6?{name:{es:'Marina de Mahón',en:'Mahon Marina',fr:'Marina de Mahon'}[lang],ch:9}:{name:{es:'Prácticos de Mahón',en:'Mahon Pilots',fr:'Pilotes de Mahon'}[lang],ch:12};
  const S=makeSpeaker(st.name,lang,()=>.5,.92);
- return {ca:[[A,`${st.name}, ${st.name}, aquí ${a}, canvi.`],[S,`${a}, aquí ${st.name}. Passi al canal ${st.ch}, canvi.`],[A,`Canal ${st.ch}, canvi.`]],
+ return {fr:[[A,`${st.name}, ${st.name}, ici ${a}, à vous.`],[S,`${a}, ici ${st.name}. Passez sur le canal ${st.ch}, à vous.`],[A,`Canal ${st.ch}, à vous.`]],
   es:[[A,`${st.name}, ${st.name}, aquí ${a}, cambio.`],[S,`${a}, aquí ${st.name}. Pase al canal ${st.ch}, cambio.`],[A,`Canal ${st.ch}, cambio.`]],
   en:[[A,`${st.name}, ${st.name}, this is ${a}, over.`],[S,`${a}, ${st.name}. Go to channel ${st.ch}, over.`],[A,`Channel ${st.ch}, ${a}.`]]}[lang].map(([who,text])=>({who,text}));
 }
@@ -208,7 +207,7 @@ function weather(r){
  return [{who:radio,text:`Boletín meteorológico para aguas costeras de Menorca. Viento del ${pick(r,dirs)} fuerza ${f}, ${pick(r,['ocasionalmente '+(f+1)+' por la tarde','amainando a partir de la noche','tendiendo a variable'])}. ${sea[Math.min(3,Math.max(0,f-2))][0].toUpperCase()+sea[Math.min(3,Math.max(0,f-2))].slice(1)}${f>4?' con mar de fondo del norte':''}. Visibilidad ${pick(r,['buena','buena, regular con chubascos','regular por calima'])}. Próximo boletín dentro de cuatro horas.`}];
 }
 const GENERATORS={16:{gap:[25,70],make:channel16},9:{gap:[18,50],make:marina},12:{gap:[30,80],make:port},14:{gap:[45,110],make:port},
- 72:{gap:[12,40],make:r=>chat(r,pick(r,['ca','ca','es','en']))},77:{gap:[18,50],make:r=>chat(r,pick(r,['es','es','ca']))},
+ 72:{gap:[12,40],make:r=>chat(r,pick(r,['es','fr','en','es']))},77:{gap:[18,50],make:r=>chat(r,pick(r,['es','es','fr']))},
  13:{gap:[45,110],make:bridge},67:{gap:[35,90],make:regatta},6:{gap:[60,140],make:rescue},10:{gap:[50,130],make:rescue},20:{gap:[25,45],make:weather}};
 export const voiceChannels=Object.keys(GENERATORS).map(Number);
 // Converses llunyanes: veu ininteligible amb molt de soroll.

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1c22">
-<meta name="description" content="Simulador didàctic d’emissora VHF marina: canals reals, estàtica, PTT amb la teva veu i estacions que responen.">
+<meta name="description" content="Simulador didàctic d’emissora VHF marina: canals reals, estàtica, PTT amb la teva veu i estacions que responen." data-i18n-attr="content:app.description">
 <title>Emissora VHF · simulador</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
@@ -14,92 +14,96 @@
 </head>
 <body>
 <header class="top">
- <div class="title"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M14 36V12l6-8 6 8v24M14 20h12M20 4v-2"/><path d="M8 10a14 14 0 0 1 0 14M32 10a14 14 0 0 1 0 14M4 6a20 20 0 0 1 0 22M36 6a20 20 0 0 1 0 22"/></svg><div><strong>Emissora VHF</strong><span>Simulador de ràdio marina · Maó</span></div></div>
- <span id="offline" class="pill" role="status">Preparant fora de línia…</span>
+ <div class="title"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M14 36V12l6-8 6 8v24M14 20h12M20 4v-2"/><path d="M8 10a14 14 0 0 1 0 14M32 10a14 14 0 0 1 0 14M4 6a20 20 0 0 1 0 22M36 6a20 20 0 0 1 0 22"/></svg><div><strong data-i18n="app.name">Emissora VHF</strong><span data-i18n="app.subtitle">Simulador de ràdio marina · Maó</span></div></div>
+ <div class="top-right">
+  <label class="ui-lang"><span class="sr-only" data-i18n="set.ui">Idioma de l’aplicació</span><select id="uiLang"></select></label>
+  <span id="offline" class="pill" role="status" data-i18n="off.preparing">Preparant fora de línia…</span>
+ </div>
 </header>
 
 <main class="layout">
- <section class="radio" aria-label="Emissora VHF">
+ <section class="radio" data-i18n-attr="aria-label:aria.radio" aria-label="Emissora VHF">
   <div class="faceplate">
    <div class="brandline"><span class="brand">NAVÍLIA</span><span class="model">VHF·25 DSC</span></div>
    <div class="lcd" id="lcd" aria-live="polite">
     <div class="lcd-flags"><b id="fTx">TX</b><b id="fBusy">BUSY</b><b id="fScan">SCAN</b><b id="fPower">HI</b><b id="fDuplex">DUP</b><b>INT</b></div>
     <div class="lcd-main"><svg id="digits" viewBox="0 0 132 92" aria-hidden="true"></svg><div class="lcd-side"><div id="meter" class="meter" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div><span id="meterLabel">RX</span></div></div>
     <div class="lcd-freq" id="freq">156,800 MHz</div>
-    <div class="lcd-name" id="chname">Socors, seguretat i crida</div>
+    <div class="lcd-name" id="chname"></div>
     <div class="lcd-msg" id="lcdMsg">&nbsp;</div>
     <span class="sr-only" id="channelAnnounce"></span>
    </div>
    <div class="controls">
-    <div class="knob-wrap"><div class="knob small" id="vol" role="slider" tabindex="0" aria-label="Volum" aria-valuemin="0" aria-valuemax="100"><i></i></div><label>VOL</label></div>
-    <div class="knob-wrap"><div class="knob small" id="sql" role="slider" tabindex="0" aria-label="Squelch" aria-valuemin="0" aria-valuemax="100"><i></i></div><label>SQL</label></div>
-    <div class="knob-wrap big"><div class="knob dial" id="dial" role="slider" tabindex="0" aria-label="Canal" aria-valuemin="1" aria-valuemax="88"><i></i></div><label>CANAL</label></div>
+    <div class="knob-wrap"><div class="knob small" id="vol" role="slider" tabindex="0" data-i18n-attr="aria-label:aria.vol" aria-label="Volum" aria-valuemin="0" aria-valuemax="100"><i></i></div><label data-i18n="knob.vol">VOL</label></div>
+    <div class="knob-wrap"><div class="knob small" id="sql" role="slider" tabindex="0" data-i18n-attr="aria-label:aria.sql" aria-label="Squelch" aria-valuemin="0" aria-valuemax="100"><i></i></div><label data-i18n="knob.sql">SQL</label></div>
+    <div class="knob-wrap big"><div class="knob dial" id="dial" role="slider" tabindex="0" data-i18n-attr="aria-label:aria.dial" aria-label="Canal" aria-valuemin="1" aria-valuemax="88"><i></i></div><label data-i18n="knob.channel">CANAL</label></div>
    </div>
    <div class="keys">
-    <button id="power" class="key power" aria-pressed="false" title="Encén o apaga (tecla P)">⏻ <span>PWR</span></button>
-    <button id="k16" class="key" title="Canal 16 / 9 (tecla 1)">16/9</button>
-    <button id="kHL" class="key" title="Potència alta o baixa (tecla H)">H/L</button>
-    <button id="kScan" class="key" aria-pressed="false" title="Escàner (tecla S)">SCAN</button>
-    <button id="kDown" class="key" aria-label="Canal anterior">▼</button>
-    <button id="kUp" class="key" aria-label="Canal següent">▲</button>
-    <button id="kDsc" class="key distress" title="Alerta de socors DSC (simulada)">DISTRESS</button>
+    <button id="power" class="key power" aria-pressed="false" data-i18n-attr="title:key.power" title="Encén o apaga (tecla P)">⏻ <span>PWR</span></button>
+    <button id="k16" class="key" data-i18n-attr="title:key.169" title="Canal 16 / 9 (tecla 1)">16/9</button>
+    <button id="kHL" class="key" data-i18n-attr="title:key.hl" title="Potència alta o baixa (tecla H)">H/L</button>
+    <button id="kScan" class="key" aria-pressed="false" data-i18n-attr="title:key.scan" title="Escàner (tecla S)">SCAN</button>
+    <button id="kDown" class="key" data-i18n-attr="aria-label:aria.down" aria-label="Canal anterior">▼</button>
+    <button id="kUp" class="key" data-i18n-attr="aria-label:aria.up" aria-label="Canal següent">▲</button>
+    <button id="kDsc" class="key distress" data-i18n-attr="title:key.dsc" title="Alerta de socors DSC (simulada)">DISTRESS</button>
    </div>
   </div>
 
   <p id="voiceWarn" class="voice-warn" hidden></p>
   <div class="mic">
-   <button id="ptt" class="ptt" aria-label="PTT: mantén premut per parlar" disabled><span class="ptt-ring"></span><b>PTT</b><span id="aiBadge" class="ai-badge" hidden>IA</span><small id="pttHint">Encén la ràdio</small></button>
+   <button id="ptt" class="ptt" data-i18n-attr="aria-label:ptt.aria" aria-label="PTT: mantén premut per parlar" disabled><span class="ptt-ring"></span><b>PTT</b><span id="aiBadge" class="ai-badge" hidden>IA</span><small id="pttHint" data-i18n="ptt.off">Encén la ràdio</small></button>
    <div class="mic-side">
-    <p id="heard" class="heard" aria-live="polite">Mantén premut el PTT (o la barra d’espai), parla i deixa’l anar en acabar amb «canvi».</p>
-    <form id="textForm" class="text-tx" autocomplete="off"><input id="textInput" placeholder="…o escriu el missatge i prem Transmet" aria-label="Missatge per transmetre"><button class="btn" id="textSend">Transmet</button></form>
-    <div class="phrases" id="phrases" aria-label="Frases d’exemple"></div>
+    <p id="heard" class="heard" aria-live="polite"></p>
+    <form id="textForm" class="text-tx" autocomplete="off"><input id="textInput" data-i18n-attr="placeholder:text.placeholder;aria-label:text.aria" placeholder="…o escriu el missatge i prem Transmet" aria-label="Missatge per transmetre"><button class="btn" id="textSend" data-i18n="text.send">Transmet</button></form>
+    <div class="phrases" id="phrases" data-i18n-attr="aria-label:phrases.aria" aria-label="Frases d’exemple"></div>
    </div>
   </div>
  </section>
 
  <aside class="side">
   <section class="panel log-panel">
-   <div class="panel-head"><h2>Registre de comunicacions</h2><label class="check"><input type="checkbox" id="subtitles" checked> Subtítols</label></div>
-   <ol id="log" class="log" aria-live="polite"></ol>
+   <div class="panel-head"><h2 data-i18n="log.title">Registre de comunicacions</h2><label class="check"><input type="checkbox" id="subtitles" checked> <span data-i18n="log.subtitles">Subtítols</span></label></div>
+   <ol id="log" class="log" aria-live="polite" data-i18n-attr="data-empty:log.empty" data-empty="Encén la ràdio i escolta. Aquí apareixerà el que se senti."></ol>
   </section>
   <details class="panel" id="guide" open>
-   <summary><h2>Com es fa una crida</h2></summary>
+   <summary><h2 data-i18n="guide.title">Com es fa una crida</h2></summary>
    <ol class="steps">
-    <li>Escolta abans de parlar: el canal ha d’estar lliure.</li>
-    <li>Al <b>canal 16</b>: «<i>Marina de Maó, Marina de Maó, aquí veler <span class="vname">Xaloc</span>, canvi</i>».</li>
-    <li>Et diran a quin canal de treball has de passar. Canvia-hi i torna a cridar breument.</li>
-    <li>Explica què vols, curt i clar, i acaba amb «<i>canvi</i>». Per acabar: «<i>canvi i fora</i>».</li>
+    <li data-i18n="guide.s1"></li>
+    <li data-i18n-html="guide.s2"></li>
+    <li data-i18n="guide.s3"></li>
+    <li data-i18n-html="guide.s4"></li>
    </ol>
-   <table class="who"><caption>Qui escolta on</caption><tbody>
-    <tr><td>Marina de Maó</td><td>16 · 9</td><td>amarrament, combustible, meteo</td></tr>
-    <tr><td>Pràctics de Maó</td><td>16 · 12</td><td>entrar o sortir de port</td></tr>
-    <tr><td>Salvament Marítim</td><td>16 · 10</td><td>mayday, pan-pan, seguretat, meteo</td></tr>
-    <tr><td>Veler Tramuntana</td><td>16 · 72</td><td>xerrar entre vaixells</td></tr>
+   <table class="who"><caption data-i18n="guide.caption">Qui escolta on</caption><tbody>
+    <tr><td data-i18n="st.marina">Marina</td><td>16 · 9</td><td data-i18n="guide.marina"></td></tr>
+    <tr><td data-i18n="st.port">Port</td><td>16 · 12</td><td data-i18n="guide.port"></td></tr>
+    <tr><td data-i18n="st.sar">SAR</td><td>16 · 10</td><td data-i18n="guide.sar"></td></tr>
+    <tr><td data-i18n="guide.yachtName">Tramuntana</td><td>16 · 72</td><td data-i18n="guide.yacht"></td></tr>
    </tbody></table>
-   <p class="small">Escolta també els canals 9, 12, 13, 14, 20, 67, 72 i 77: hi ha trànsit d’altres vaixells. Amb el squelch obert (SQL al mínim) sentiràs l’estàtica. Prova l’escàner (SCAN).</p>
+   <p class="small" data-i18n="guide.more"></p>
   </details>
   <details class="panel" id="settings">
-   <summary><h2>Configuració</h2></summary>
+   <summary><h2 data-i18n="set.title">Configuració</h2></summary>
    <div class="form">
-    <label>Nom del teu vaixell<input id="vessel" maxlength="30" value="Xaloc"></label>
-    <label>Llengua de comunicació<select id="lang"><option value="ca">Català</option><option value="es">Castellà</option><option value="en">Anglès</option></select></label>
-    <label>Entrada<select id="mode"><option value="voice">Veu (micròfon)</option><option value="text">Text escrit</option></select></label>
+    <label><span data-i18n="set.vessel">Nom del teu vaixell</span><input id="vessel" maxlength="30" value="Xaloc"></label>
+    <label><span data-i18n="set.ui">Idioma de l’aplicació</span><select id="uiLang2"></select></label>
+    <label><span data-i18n="set.comm">Llengua de comunicació per ràdio</span><select id="lang"><option value="es" data-i18n="lang.es">Castellà</option><option value="en" data-i18n="lang.en">Anglès</option><option value="fr" data-i18n="lang.fr">Francès</option></select></label>
+    <label><span data-i18n="set.input">Entrada</span><select id="mode"><option value="voice" data-i18n="set.voice">Veu (micròfon)</option><option value="text" data-i18n="set.text">Text escrit</option></select></label>
    </div>
    <p class="small" id="capabilities"></p>
    <div class="ai-box">
-    <label class="check big"><input type="checkbox" id="aiOn"> Mode IA (Claude): entén qualsevol frase</label>
+    <label class="check big"><input type="checkbox" id="aiOn"> <span data-i18n="ai.on">Mode IA (Claude): entén qualsevol frase</span></label>
     <form id="aiFields" class="form" autocomplete="off" onsubmit="return false">
-     <label>Clau d’API d’Anthropic<input id="aiKey" type="password" name="api-key" autocomplete="off" spellcheck="false" placeholder="sk-ant-…"></label>
-     <label>Model<select id="aiModel"></select></label>
-     <div class="ai-actions"><button type="button" class="btn" id="aiTest">Prova la connexió</button><button type="button" class="link" id="aiForget">Esborra la clau</button></div>
+     <label><span data-i18n="ai.key">Clau d’API d’Anthropic</span><input id="aiKey" type="password" name="api-key" autocomplete="off" spellcheck="false" placeholder="sk-ant-…"></label>
+     <label><span data-i18n="ai.model">Model</span><select id="aiModel"></select></label>
+     <div class="ai-actions"><button type="button" class="btn" id="aiTest" data-i18n="ai.test">Prova la connexió</button><button type="button" class="link" id="aiForget" data-i18n="ai.forget">Esborra la clau</button></div>
      <p class="small" id="aiResult" aria-live="polite"></p>
-     <p class="small">La clau es desa només en aquest navegador i s’envia directament a Anthropic. Cada missatge costa aproximadament un o dos cèntims amb Opus, menys amb Sonnet o Haiku. Si no hi ha connexió o la clau falla, respon el motor local. Fes servir una clau amb límit de despesa i no publiquis l’app amb la clau posada.</p>
+     <p class="small" data-i18n="ai.note"></p>
     </form>
    </div>
   </details>
  </aside>
 </main>
-<footer>Simulador didàctic. Estacions, vaixells i procediments simplificats i inventats: no substitueix la formació del títol d’operador ni s’ha d’usar per navegar. En una emergència real, truca al 112.</footer>
+<footer data-i18n="footer">Simulador didàctic. En una emergència real, truca al 112.</footer>
 <div id="toast" class="toast" role="status" hidden></div>
 </body>
 </html>

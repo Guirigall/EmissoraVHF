@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "Emissora VHF · simulador marí",
+  "short_name": "Emissora VHF",
+  "description": "Simulador didàctic d’emissora VHF marina amb canals, estàtica i estacions que responen.",
+  "lang": "ca",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0d171c",
+  "theme_color": "#0f1c22",
+  "categories": ["education", "navigation"],
+  "icons": [
+    {"src": "./icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"},
+    {"src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

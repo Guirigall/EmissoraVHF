@@ -4,6 +4,8 @@ Simulador didàctic d’una emissora VHF marina, ambientat al port de Maó. Trie
 
 [Català](#ca) · [Español](#es) · [English](#en)
 
+**Per continuar el desenvolupament:** [HANDOFF.md](HANDOFF.md) (estat del projecte, arquitectura, decisions i tasques pendents).
+
 ![Emissora VHF — ordinador / ordenador / desktop](docs/images/desktop.jpg)
 
 <details>

@@ -1,6 +1,6 @@
 # Handoff · Emissora VHF
 
-Document de traspàs per continuar el projecte sense context previ. Estat a **12 de novembre de 2026**, versió de memòria cau `v1.2.1`.
+Document de traspàs per continuar el projecte sense context previ. Estat a **12 de novembre de 2026**, versió de memòria cau `v1.2.2`.
 
 ### Millores de continuació (12 de novembre)
 
@@ -114,3 +114,11 @@ Publicar: fer `git push` a `main`. GitHub Pages es reconstrueix sol en un o dos 
 - El projecte el mantén **Guirigall**. Els commits es fan amb l’adreça privada de GitHub `61776585+Guirigall@users.noreply.github.com`; no s’ha de posar cap correu personal al repositori.
 - Projectes germans al mateix compte, amb el mateix estil de PWA i el mateix flux de captures: CablejatElectric, ElectricitatABord, ExercicisCartaNautica, MotorMarino.
 - L’usuari escriu en català i prefereix explicacions en català.
+
+## PTT i icona · v1.2.2
+
+- Icona nova: emissora fixa horitzontal amb micròfon separat, SVG i PNG de 192/512 px.
+- PTT: captura única del reconeixedor, sense obrir un segon micròfon per al vúmetre. El nivell TX indica activitat de parla detectada, no amplitud mesurada.
+- Es distingeix preparació d’escolta real; es processen resultats després de deixar anar el botó (fins a 8 s), es recuperen finals prematurs de sessió i s’eviten transcripcions duplicades.
+- Errors de xarxa, captura, permís i llengua amb missatges en els quatre idiomes.
+- Proves unitàries amb reconeixedor simulat i regressió Chromium del PTT complet. La veu real del dispositiu continua requerint comprovació amb l’usuari; el servei del navegador necessita connexió.

@@ -46,17 +46,54 @@ export function silence(){utterances.clear();synth?.cancel()}
 
 const Recognition=globalThis.SpeechRecognition||globalThis.webkitSpeechRecognition;
 export const canListen=()=>!!Recognition;
-// Escolta mentre el PTT és premut. stop() retorna el text reconegut.
-export function listen(lang,onInterim=()=>{}){
- const rec=new Recognition();rec.lang=LOCALE[lang]||lang;rec.interimResults=true;rec.continuous=true;rec.maxAlternatives=1;
- let finalText='',interim='',error=null,ended=false,resolveEnd;
- const endPromise=new Promise(r=>resolveEnd=r);
- rec.onresult=e=>{interim='';for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i];if(r.isFinal)finalText+=r[0].transcript+' ';else interim+=r[0].transcript}onInterim((finalText+interim).trim())};
- rec.onerror=e=>{error=e.error};
- rec.onend=()=>{ended=true;resolveEnd()};
- try{rec.start()}catch(e){error='start';ended=true;resolveEnd()}
+// Una sola captura de micròfon: la del reconeixedor. El permís pot trigar a arribar.
+export function listen(lang,onInterim=()=>{},onStatus=()=>{}){
+ let rec=null,completed='',current='',error=null,stopping=false,aborted=false,ended=true;
+ let retry=null,stopPromise=null,resolveStop=null,guard=null,restarts=0;
+ const text=()=>[completed,current].filter(Boolean).join(' ').trim();
+ const finish=()=>{clearTimeout(guard);clearTimeout(retry);resolveStop?.({text:text(),error});resolveStop=null};
+ const fail=code=>{error=code;onStatus('error',code)};
+ function start(){
+  if(stopping||aborted)return;
+  if(!Recognition){fail('unsupported');finish();return}
+  try{
+   rec=new Recognition();ended=false;current='';
+   rec.lang=LOCALE[lang]||lang;rec.interimResults=true;rec.continuous=true;rec.maxAlternatives=1;
+   const active=rec;
+   rec.onstart=()=>{if(aborted){active.abort();return}if(stopping){try{active.stop()}catch{}return}onStatus('ready')};
+   rec.onaudiostart=()=>{if(!stopping&&!aborted)onStatus('ready')};
+   rec.onspeechstart=()=>{if(!stopping&&!aborted)onStatus('speech')};
+   rec.onspeechend=()=>{if(!stopping&&!aborted)onStatus('ready')};
+   rec.onresult=e=>{
+    if(aborted)return;
+    // results és la llista completa de la sessió, també quan una frase es revisa.
+    current=Array.from(e.results,r=>r[0]?.transcript||'').join(' ').trim();
+    onInterim(text());
+   };
+   rec.onerror=e=>{if(aborted)return;if(e.error==='no-speech'){error='no-speech';return}fail(e.error)};
+   rec.onend=()=>{
+    ended=true;if(aborted){finish();return}
+    completed=text();current='';
+    if(stopping){finish();return}
+    // Alguns navegadors acaben la sessió durant una pausa encara que continuous=true.
+    if((!error||error==='no-speech')&&restarts++<3){error=null;onStatus('starting');retry=setTimeout(start,150)}
+    else {if(!error||error==='no-speech')fail('no-speech');finish()}
+   };
+   onStatus('starting');rec.start();
+  }catch(e){ended=true;fail(e.name==='NotAllowedError'?'not-allowed':'start');finish()}
+ }
+ start();
  return {
-  async stop(){if(!ended){try{rec.stop()}catch{}await Promise.race([endPromise,new Promise(r=>setTimeout(r,2500))])}return {text:(finalText+interim).trim(),error}},
-  abort(){try{rec.abort()}catch{}},
+  stop(){
+   if(stopPromise)return stopPromise;
+   stopping=true;clearTimeout(retry);
+   stopPromise=new Promise(resolve=>{resolveStop=resolve});
+   if(ended||aborted){finish();return stopPromise}
+   // stop() pot precedir onstart mentre s'accepta el permís: onstart ho tornarà a provar.
+   guard=setTimeout(()=>{error||=text()?null:'timeout';try{rec.abort()}catch{}finish()},8000);
+   try{rec.stop()}catch{}
+   return stopPromise;
+  },
+  abort(){aborted=true;stopping=true;clearTimeout(retry);try{rec?.abort()}catch{}finish()},
  };
 }

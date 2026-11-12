@@ -17,6 +17,19 @@ const report = { repository: repo, sourceCommit: process.env.GITHUB_SHA, url: `h
    const context = await browser.newContext({ viewport, deviceScaleFactor: 1, isMobile: mobile, hasTouch: mobile, locale: 'ca-ES', colorScheme: 'light' });
    const page = await context.newPage(); const errors = [];
    page.on('pageerror', e => errors.push(e.message));
+   if(repo==='EmissoraVHF')await page.addInitScript(()=>{
+    window.__micRequests=0;
+    if(navigator.mediaDevices)navigator.mediaDevices.getUserMedia=async()=>{window.__micRequests++;throw Error('Unexpected second microphone capture')};
+    window.SpeechRecognition=class {
+     start(){setTimeout(()=>{this.onstart?.();this.onaudiostart?.()},50)}
+     stop(){setTimeout(()=>{
+      if(window.__speechError)this.onerror?.({error:window.__speechError});
+      else this.onresult?.({resultIndex:0,results:[[{transcript:'Marina de Mahón, aquí Xaloc, cambio'}]]});
+      this.onend?.();
+     },100)}
+     abort(){this.onend?.()}
+    };
+   });
    const response = await page.goto('http://127.0.0.1:8765/', {waitUntil:'domcontentloaded',timeout:60000});
    if (!response.ok()) throw Error('App HTTP '+response.status());
    await page.evaluate(() => Promise.race([document.fonts.ready, new Promise(r => setTimeout(r,5000))]));
@@ -34,7 +47,23 @@ const report = { repository: repo, sourceCommit: process.env.GITHUB_SHA, url: `h
      await new Promise(r=>setTimeout(r,3000));
      if(v.state.tx||v.state.queue.length)throw Error('Late TX after shutdown');
      const log=document.querySelector('#log');log.textContent='';
-     await v.powerToggle();v.setChannel(16);
+     await v.powerToggle();v.setChannel(9);v.settings.mode='voice';
+     const ptt=document.querySelector('#ptt');
+     ptt.dispatchEvent(new KeyboardEvent('keydown',{code:'Space',key:' ',bubbles:true}));
+     await new Promise(r=>setTimeout(r,150));
+     if(!v.state.tx)throw Error('Voice PTT did not start');
+     ptt.dispatchEvent(new KeyboardEvent('keyup',{code:'Space',key:' ',bubbles:true}));
+     await new Promise(r=>setTimeout(r,250));
+     if(!document.querySelector('#log').textContent.includes('Marina de Mahón, aquí Xaloc, cambio'))throw Error('Final transcript lost after release');
+     if(window.__micRequests)throw Error('PTT opened microphone twice');
+     window.__speechError='network';
+     ptt.dispatchEvent(new KeyboardEvent('keydown',{code:'Space',key:' ',bubbles:true}));
+     await new Promise(r=>setTimeout(r,150));
+     ptt.dispatchEvent(new KeyboardEvent('keyup',{code:'Space',key:' ',bubbles:true}));
+     await new Promise(r=>setTimeout(r,250));
+     if(!document.querySelector('#heard').textContent.includes('Internet'))throw Error('Recognition network error not explained');
+     await v.powerToggle();await v.powerToggle();v.setChannel(16);document.querySelector('#log').textContent='';
+
     });
     await page.waitForTimeout(500);
    }

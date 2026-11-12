@@ -21,10 +21,10 @@ const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(settings))}catch{}};
 
 const state={on:false,channel:settings.channel,power:settings.power,tx:false,rx:null,scan:false,scanHold:0,lastScan:0,dialog:newState(),queue:[],nextData:0,txLevel:0,signal:0};
 const traffic=new Traffic(Date.now());
-let rxToken=0,recognizer=null,stopMeter=null,txTimer=null,textTxTimer=null,msgTimer=null,textAnim=null,session=0,powerBusy=false,txChannel=null,txSession=null,cancelDsc=()=>{};
+let rxToken=0,recognizer=null,stopMeter=null,txTimer=null,textTxTimer=null,msgTimer=null,textAnim=null,session=0,powerBusy=false,voiceProcessing=false,txChannel=null,txSession=null,cancelDsc=()=>{};
 const pendingTimers=new Set();
 function later(fn,ms){const id=setTimeout(()=>{pendingTimers.delete(id);fn()},ms);pendingTimers.add(id);return id}
-function cancelSession(){session++;cancelDsc();clearTimeout(msgTimer);msgTimer=null;for(const id of pendingTimers)clearTimeout(id);pendingTimers.clear();clearTimeout(textTxTimer);textTxTimer=null;clearInterval(textAnim);textAnim=null;clearTimeout(txTimer);recognizer?.abort();recognizer=null;stopMeter?.();stopMeter=null;state.tx=false;state.txLevel=0;state.queue.length=0;state.dialog=newState();for(const key of Object.keys(history))delete history[key];$('#heard').classList.remove('live');}
+function cancelSession(){session++;voiceProcessing=false;cancelDsc();clearTimeout(msgTimer);msgTimer=null;for(const id of pendingTimers)clearTimeout(id);pendingTimers.clear();clearTimeout(textTxTimer);textTxTimer=null;clearInterval(textAnim);textAnim=null;clearTimeout(txTimer);recognizer?.abort();recognizer=null;stopMeter?.();stopMeter=null;state.tx=false;state.txLevel=0;state.queue.length=0;state.dialog=newState();for(const key of Object.keys(history))delete history[key];$('#heard').classList.remove('live');}
 
 /* ---------- Pantalla LCD ---------- */
 const DIGITS={0:'abcdef',1:'bc',2:'abged',3:'abgcd',4:'fgbc',5:'afgcd',6:'afgedc',7:'abc',8:'abcdefg',9:'abcdfg','-':'g',' ':''};
@@ -51,7 +51,7 @@ function render(){
  document.querySelectorAll('#meter i').forEach((b,i)=>b.classList.toggle('on',i<bars));
  $('#meterLabel').textContent=state.tx?'TX':'RX';
  $('#kScan').setAttribute('aria-pressed',state.scan);$('#power').setAttribute('aria-pressed',state.on);
- $('#ptt').disabled=!state.on;$('#ptt').classList.toggle('tx',state.tx);
+ $('#ptt').disabled=!state.on||voiceProcessing;$('#ptt').classList.toggle('tx',state.tx);
  $('#pttHint').textContent=t(!state.on?'ptt.off':state.tx?'ptt.tx':c.txAllowed?'ptt.ready':'ptt.noVoice');
  const dial=$('#dial');dial.setAttribute('aria-valuenow',state.channel);dial.setAttribute('aria-valuetext',t('aria.dial')+' '+state.channel+', '+channelName(c.nameKey));
  if(!state.rx&&!state.tx&&!msgTimer)lcdMessage('');
@@ -171,27 +171,36 @@ function canTransmit(){
  if(!info(state.channel).txAllowed){audio.error();lcdMessage(t('lcd.txInhibit'),2500);return false}
  return true;
 }
+function recognitionError(error){
+ const key=({'not-allowed':'heard.noMic','service-not-allowed':'heard.noMic','network':'heard.network','audio-capture':'heard.capture','language-not-supported':'heard.language','start':'heard.startFailed','unsupported':'heard.startFailed','timeout':'heard.timeout'})[error]||'heard.nothing';
+ return t(key);
+}
 async function pttDown(){
- if(state.tx||!canTransmit())return;
+ if(state.tx||voiceProcessing||!canTransmit())return;
  if(state.rx){const kind=state.rx.kind;interruptRx('step');if(kind!=='distant')log('system',t('sys.stepped'))}
  txChannel=state.channel;txSession=session;state.scan=false;state.tx=true;audio.tx(true);lcdMessage(t('lcd.tx'));render();
  const heard=$('#heard');heard.classList.add('live');heard.dataset.used='1';
  if(settings.mode==='voice'&&canListen()){
-  heard.textContent=t('heard.listening');
-  recognizer=listen(settings.lang,text=>{heard.textContent=text||t('heard.listening')});
-  const stamp=session,currentTx=recognizer;
-  audio.micMeter(l=>{state.txLevel=Math.min(1,l*2.2);$('#ptt').style.setProperty('--lvl',state.txLevel);render()}).then(stop=>{if(state.tx&&stamp===session&&currentTx===recognizer)stopMeter=stop;else stop()});
+  heard.textContent=t('heard.starting');
+  const stamp=session;
+  recognizer=listen(settings.lang,text=>{if(stamp===session)heard.textContent=text||t('heard.listening')},(phase,error)=>{
+   if(stamp!==session||!state.tx)return;
+   if(phase==='error'){heard.textContent=recognitionError(error);return}
+   state.txLevel=phase==='speech'?.65:0;render();
+   if(!heard.textContent||[t('heard.starting'),t('heard.listening')].includes(heard.textContent))heard.textContent=t(phase==='starting'?'heard.starting':'heard.listening');
+  });
  }else heard.textContent=t('heard.textMode');
  clearTimeout(txTimer);txTimer=setTimeout(()=>{if(state.tx){lcdMessage(t('lcd.timeout'),2500);pttUp()}},45000);
 }
 async function pttUp(){
  if(!state.tx||textTxTimer)return;clearTimeout(txTimer);state.tx=false;state.txLevel=0;audio.tx(false);stopMeter?.();stopMeter=null;render();
  const heard=$('#heard');heard.classList.remove('live');
- if(!recognizer)return;const r=recognizer,channel=txChannel,stamp=txSession;recognizer=null;heard.textContent=t('heard.processing');
+ if(!recognizer)return;const r=recognizer,channel=txChannel,stamp=txSession;recognizer=null;voiceProcessing=true;render();heard.textContent=t('heard.processing');
  const {text,error}=await r.stop();
  if(!state.on||stamp!==session)return;
+ voiceProcessing=false;render();
  if(text){heard.textContent='«'+text+'»';transmitted(text,channel,stamp);return}
- heard.textContent=t(error==='not-allowed'||error==='service-not-allowed'?'heard.noMic':error==='network'?'heard.network':'heard.nothing');
+ heard.textContent=recognitionError(error);
 }
 async function transmitted(text,channel=state.channel,stamp=session){
  if(!state.on||stamp!==session)return;
@@ -238,7 +247,7 @@ addEventListener('keydown',e=>{
  if(k==='p')powerToggle();else if(k==='s')$('#kScan').click();else if(k==='h')$('#kHL').click();else if(k==='1')$('#k16').click();
  else if(e.target.closest?.('.knob'))return;else if(e.key==='ArrowUp'){e.preventDefault();$('#kUp').click()}else if(e.key==='ArrowDown'){e.preventDefault();$('#kDown').click()}
 });
-addEventListener('keyup',e=>{if(e.code==='Space'&&!typing(e))pttUp()});
+addEventListener('keyup',e=>{if(e.code==='Space')pttUp()});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&state.tx)pttUp()});
 
 /* ---------- Alerta DSC de socors (mantenir premut 3 s) ---------- */

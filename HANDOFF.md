@@ -1,8 +1,12 @@
 # Handoff · EmissoraVHF
 
-Document autosuficient per continuar el projecte sense llegir la conversa. Actualitzat el **12 de novembre de 2026**. Estat funcional: **v1.2.4** (`sw.js`, distintiu de la capçalera i `package.json` coincideixen).
+Document autosuficient per continuar el projecte sense llegir la conversa. Actualitzat el **12 de novembre de 2026**. Estat funcional: **v1.2.5** (`sw.js`, distintiu de la capçalera i `package.json` coincideixen).
 
-**PTT amb micròfon real: causa identificada i corregida a v1.2.4, pendent de confirmació de l’usuari amb la seva veu.**
+**PTT amb micròfon real: dues causes trobades. La principal a l’equip de l’usuari és que el micròfon del sistema està silenciat.**
+
+- **Causa principal (12/11/2026, v1.2.5):** a PipeWire, la font «Àudio intern Estèreo analògic» (`alsa_input.pci-0000_00_1f.3.analog-stereo`) està **silenciada** (`wpctl status`: `vol: 0.85 MUTED`). La pista de `getUserMedia` arriba amb `muted=true`, i Chrome rebutja `start(track)` amb `InvalidStateError: The MediaStreamTrack is not of kind 'audio' or is not of state 'live'`; al diagnòstic de l’usuari sortia `Error [start]`. Amb versions anteriors el reconeixedor arrencava però no sentia res. **No s’ha desactivat el silenci pel compte de l’usuari**: s’ha de fer a la icona de so o amb `wpctl set-mute @DEFAULT_AUDIO_SOURCE@ 0`. Ara l’app detecta la pista muda (espera 1,5 s per si es desactiva sola) i mostra un missatge clar (`mic-muted`). Si Chrome rebutja la pista per un altre motiu, prova la captura del navegador i el diagnòstic en mostra el nom de l’error (fase «Detall»).
+- **Pendent:** que l’usuari desactivi el silenci i confirmi que el PTT funciona amb la seva veu.
+- **Segona causa, vista amb micròfon simulat (v1.2.4):** vegeu a continuació.
 
 - **Causa:** al Chrome 157 (flatpak) de Linux d’aquest equip, el reconeixedor (`webkitSpeechRecognition`) arrencat amb `start()` obre la seva pròpia captura d’àudio i **no hi rep so**: arriben `start` i `audiostart`, però mai `soundstart`, i als ~8 s acaba en `no-speech`. Era exactament el símptoma descrit per l’usuari («el micròfon s’activa però no reconeix res»). En canvi, `getUserMedia` sí que rep l’àudio (pic 1,0).
 - **Correcció:** `voice.js` obre el micròfon amb `getUserMedia` i en passa la pista al reconeixedor amb `start(track)`. Si el navegador no admet la pista, l’ignora o la rebutja, i es fa servir la captura pròpia com abans. El vúmetre torna a mesurar el nivell real amb el mateix flux, sense segona captura.
@@ -42,6 +46,7 @@ Estacions, posicions, abast, diàlegs i ús dels canals als escenaris són ficti
 |---|---|
 | v1.2.1 | Apagar cancel·la transmissió, temporitzadors DSC, micròfon i cua de respostes; invalida resultats tardans de la sessió; neteja historial i estat de diàleg. Canal fix durant TX i preservat en processar la transcripció. Volum amb la ràdio apagada i alliberament de permisos de micròfon tardans corregits. |
 | v1.2.2 | Icona d’emissora fixa horitzontal amb micròfon separat, SVG i PNG de 192/512 px. Eliminada la segona captura de micròfon per al vúmetre durant el PTT. Gestió de resultats finals després de deixar anar el botó, sessions acabades prematurament i textos revisats. Errors de veu traduïts. |
+| v1.2.5 | Detecció del micròfon silenciat al sistema (pista `muted`) amb missatge clar en quatre idiomes. Si Chrome rebutja la pista, s’intenta sense pista. Detall de l’excepció al diagnòstic. Tres proves noves. |
 | v1.2.4 | **Correcció del PTT real:** el micròfon s’obre amb `getUserMedia` i la pista es passa al reconeixedor (`start(track)`), amb alternativa sense pista. Vúmetre real amb el mateix flux. Fases noves al diagnòstic: «Micròfon obert», «So detectat pel reconeixedor» i «Sense pista pròpia». Les fases repetides s’agrupen (×N). `package.json` passa a 1.2.4. |
 | v1.2.3 | La capçalera reutilitza `icons/icon.svg`. Botó «Parla amb un toc» per començar amb un clic i acabar amb un altre. Diagnòstic de fases/codis visible i versió a la capçalera. «Escoltant» només després de `audiostart`; límit de 12 s si no comença la captura. |
 
@@ -49,7 +54,7 @@ L’usuari ha dit que **la icona nova està bé**. Va indicar que el dibuix anti
 
 ### Evidència i límits de les proves
 
-- `npm test` passa: 27 casos en vuit fitxers. A `voice.test.mjs` hi ha regressions de la causa real: la pista arriba al reconeixedor i s’allibera, el permís denegat es diu `not-allowed`, i sense dispositiu es fa servir la captura del navegador.
+- `npm test` passa: 30 casos en vuit fitxers. Inclou el cas del micròfon silenciat. A `voice.test.mjs` hi ha regressions de la causa real: la pista arriba al reconeixedor i s’allibera, el permís denegat es diu `not-allowed`, i sense dispositiu es fa servir la captura del navegador.
 - Prova real del reconeixement (12/11/2026, v1.2.4): vegeu la prioritat a l’inici del document.
 - El flux de GitHub Actions executa les proves amb Node 22 i Chromium/Playwright en formats 1440×1050 i 390×844. Prova apagar durant TX de text, ajustar volum apagat i tornar a encendre; PTT amb resultats finals després de deixar-lo anar; error de xarxa; absència de segona petició de micròfon; alternativa amb dos clics i icona de capçalera.
 - Última comprovació v1.2.3: [Captures del README, execució 43195879590](https://github.com/Guirigall/EmissoraVHF/actions/runs/43195879590), completada correctament. [Publicació Pages 43195879248](https://github.com/Guirigall/EmissoraVHF/actions/runs/43195879248), correcta.
@@ -85,7 +90,7 @@ L’usuari ha dit que **la icona nova està bé**. Va indicar que el dibuix anti
 
 ## 5. Pendent, en ordre de prioritat
 
-1. **Confirmar amb l’usuari que v1.2.4 funciona amb la seva veu** (Chrome, PWA o web). Comprovar que la capçalera diu **v1.2.4** (si no, recarregar: el service worker és xarxa primer). Si falla, demanar el «Diagnòstic de veu» i mirar si hi ha «Micròfon obert» i «So detectat pel reconeixedor».
+1. **Que l’usuari desactivi el silenci del micròfon del sistema i confirmi que v1.2.5 funciona amb la seva veu** (Chrome, PWA o web). Comprovar que la capçalera diu **v1.2.4** (si no, recarregar: el service worker és xarxa primer). Si falla, demanar el «Diagnòstic de veu» i mirar si hi ha «Micròfon obert» i «So detectat pel reconeixedor».
 2. **Automatitzar la prova real** a Actions o en un script local: Chrome amb `--use-file-for-fake-audio-capture` i un WAV, com a la prova manual del 12/11/2026. Ara Actions només fa servir un reconeixedor simulat. Atenció: depèn de la xarxa i del servei de Google, i pot ser inestable.
 3. **Verificar amb veu humana i dispositius reals:** frase reconeguda, registre i resposta; repetir transmissions, concedir permís per primera vegada, canviar canal després de deixar anar, apagar/encendre i provar dispositiu físic. Afegir regressió de la causa concreta. Registrar què s’ha comprovat i amb quin navegador.
 4. **Provar opcionalment Claude contra el servei real**, només amb una clau que proporcioni l’usuari per a aquest ús. «Prova la connexió» a configuració. No donar per vàlids models, paràmetres beta o preus perquè el mock els accepti.

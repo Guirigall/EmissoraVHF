@@ -73,7 +73,35 @@ test('Microphone permission denied is reported as not-allowed',async()=>{
 test('Without a microphone device the browser capture is used',async()=>{
  Object.defineProperty(globalThis.navigator,'mediaDevices',{configurable:true,value:{getUserMedia:async()=>{throw Object.assign(new Error('none'),{name:'NotFoundError'})}}});
  try{
-  const phases=[];listen('es',()=>{},p=>phases.push(p));await new Promise(r=>setTimeout(r,0));
-  assert.ok(phases.includes('nomic'));assert.equal(last().track,undefined);last().abort();
+  const phases=[];const capture=listen('es',()=>{},p=>phases.push(p));await new Promise(r=>setTimeout(r,0));
+  assert.ok(phases.includes('nomic'));assert.equal(last().track,undefined);capture.abort();
  }finally{delete globalThis.navigator.mediaDevices}
+});
+
+// Micròfon silenciat al sistema (cas real del 12/11/2026): la pista arriba «muda» i Chrome la rebutja.
+test('A muted microphone track is reported as mic-muted',async()=>{
+ const track={readyState:'live',muted:true,stop(){},addEventListener(){},removeEventListener(){}};const stream={getAudioTracks:()=>[track],getTracks:()=>[track]};
+ Object.defineProperty(globalThis.navigator,'mediaDevices',{configurable:true,value:{getUserMedia:async()=>stream}});
+ try{
+  const errors=[];const before=Recognition.instances.length;const capture=listen('es',()=>{},(p,e)=>{if(p==='error')errors.push(e)});
+  await new Promise(r=>setTimeout(r,1700));
+  assert.deepEqual(errors,['mic-muted']);assert.equal(Recognition.instances.length,before);assert.equal((await capture.stop()).error,'mic-muted');
+ }finally{delete globalThis.navigator.mediaDevices}
+});
+test('A track that unmutes shortly after opening is used normally',async()=>{
+ let unmute;const track={readyState:'live',muted:true,stop(){},addEventListener(n,f){if(n==='unmute')unmute=f},removeEventListener(){}};const stream={getAudioTracks:()=>[track],getTracks:()=>[track]};
+ Object.defineProperty(globalThis.navigator,'mediaDevices',{configurable:true,value:{getUserMedia:async()=>stream}});
+ try{
+  const capture=listen('es');await new Promise(r=>setTimeout(r,0));track.muted=false;unmute();
+  assert.equal(last().track,track);capture.abort();
+ }finally{delete globalThis.navigator.mediaDevices}
+});
+test('If the browser rejects the track, its own capture is tried',async()=>{
+ const track={readyState:'live',muted:false,stop(){}};const stream={getAudioTracks:()=>[track],getTracks:()=>[track]};
+ Object.defineProperty(globalThis.navigator,'mediaDevices',{configurable:true,value:{getUserMedia:async()=>stream}});
+ const original=Recognition.prototype.start;
+ Recognition.prototype.start=function(t){if(t)throw Object.assign(new Error('bad track'),{name:'InvalidStateError'});this.plain=true};
+ try{const phases=[];const capture=listen('es',()=>{},(p,e)=>phases.push(p+':'+(e||'')));await new Promise(r=>setTimeout(r,0));
+  assert.ok(last().plain);assert.ok(phases.includes('nomic:InvalidStateError'));capture.abort();
+ }finally{Recognition.prototype.start=original;delete globalThis.navigator.mediaDevices}
 });

@@ -69,7 +69,14 @@ export function listen(lang,onInterim=()=>{},onStatus=()=>{},onStream=()=>{}){
    micTried=true;opening=true;onStatus('starting');
    media.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}}).then(s=>{
     opening=false;if(stopping||aborted){s.getTracks().forEach(t=>t.stop());return}
-    stream=s;track=s.getAudioTracks()[0]||null;onStatus('mic');onStream(s);start();
+    stream=s;track=s.getAudioTracks()[0]||null;onStatus('mic');onStream(s);
+    // Una pista «muda» vol dir que el sistema no envia so (micròfon silenciat o sense senyal).
+    // Algunes pistes comencen mudes uns instants: s'espera fins a 1,5 s abans de donar l'error.
+    if(track?.muted){
+     const go=()=>{clearTimeout(wait);track?.removeEventListener?.('unmute',go);if(stopping||aborted)return;if(track?.muted){fail('mic-muted');finish()}else start()};
+     const wait=setTimeout(go,1500);track.addEventListener?.('unmute',go);return;
+    }
+    start();
    },e=>{
     opening=false;if(stopping||aborted)return;
     if(e?.name==='NotAllowedError'||e?.name==='SecurityError'){fail('not-allowed');finish();return}
@@ -105,9 +112,10 @@ export function listen(lang,onInterim=()=>{},onStatus=()=>{},onStream=()=>{}){
    onStatus('starting');
    startGuard=setTimeout(()=>{if(stopping||aborted)return;fail('start-timeout');try{active.abort()}catch{}},12000);
    // Amb la pista del micròfon si en tenim; si el navegador la rebutja, sense.
-   if(track&&track.readyState==='live'){try{rec.start(track)}catch(e){if(e?.name==='TypeError'||e?.name==='NotSupportedError'){onStatus('nomic',e.name);rec.start()}else throw e}}
+   // Si el navegador rebutja la pista per qualsevol motiu, s'intenta amb la seva captura habitual.
+   if(track&&track.readyState==='live'){try{rec.start(track)}catch(e){onStatus('nomic',e?.name||'');rec.start()}}
    else rec.start();
-  }catch(e){ended=true;fail(e.name==='NotAllowedError'?'not-allowed':'start');finish()}
+  }catch(e){ended=true;onStatus('detail',(e?.name||'')+(e?.message?': '+String(e.message).slice(0,90):''));fail(e?.name==='NotAllowedError'?'not-allowed':'start');finish()}
  }
  start();
  return {

@@ -185,7 +185,7 @@ function canTransmit(){
  return true;
 }
 function recognitionError(error){
- const key=({'not-allowed':'heard.noMic','service-not-allowed':'heard.noMic','network':'heard.network','audio-capture':'heard.capture','language-not-supported':'heard.language','start':'heard.startFailed','unsupported':'heard.startFailed','timeout':'heard.timeout','start-timeout':'heard.startTimeout'})[error]||'heard.nothing';
+ const key=({'not-allowed':'heard.noMic','service-not-allowed':'heard.noMic','network':'heard.network','audio-capture':'heard.capture','language-not-supported':'heard.language','start':'heard.startFailed','mic-muted':'heard.micMuted','unsupported':'heard.startFailed','timeout':'heard.timeout','start-timeout':'heard.startTimeout'})[error]||'heard.nothing';
  return t(key);
 }
 async function pttDown(){

@@ -19,9 +19,10 @@ const report = { repository: repo, sourceCommit: process.env.GITHUB_SHA, url: `h
    page.on('pageerror', e => errors.push(e.message));
    if(repo==='EmissoraVHF')await page.addInitScript(()=>{
     window.__micRequests=0;
-    if(navigator.mediaDevices)navigator.mediaDevices.getUserMedia=async()=>{window.__micRequests++;throw Error('Unexpected second microphone capture')};
+    // v1.2.4+: cada pulsació obre el micròfon una sola vegada i en passa la pista al reconeixedor.
+    if(navigator.mediaDevices)navigator.mediaDevices.getUserMedia=async()=>{window.__micRequests++;const ctx=new AudioContext(),dest=ctx.createMediaStreamDestination();return dest.stream};
     window.SpeechRecognition=class {
-     start(){setTimeout(()=>{this.onstart?.();this.onaudiostart?.()},50)}
+     start(track){window.__trackPassed=!!track&&track.kind==='audio';setTimeout(()=>{this.onstart?.();this.onaudiostart?.()},50)}
      stop(){setTimeout(()=>{
       if(window.__speechError)this.onerror?.({error:window.__speechError});
       else this.onresult?.({resultIndex:0,results:[[{transcript:'Marina de Mahón, aquí Xaloc, cambio'}]]});
@@ -49,13 +50,15 @@ const report = { repository: repo, sourceCommit: process.env.GITHUB_SHA, url: `h
      const log=document.querySelector('#log');log.textContent='';
      await v.powerToggle();v.setChannel(9);v.settings.mode='voice';
      const ptt=document.querySelector('#ptt');
+     window.__micRequests=0;window.__trackPassed=false;
      ptt.dispatchEvent(new KeyboardEvent('keydown',{code:'Space',key:' ',bubbles:true}));
      await new Promise(r=>setTimeout(r,150));
      if(!v.state.tx)throw Error('Voice PTT did not start');
      ptt.dispatchEvent(new KeyboardEvent('keyup',{code:'Space',key:' ',bubbles:true}));
      await new Promise(r=>setTimeout(r,250));
      if(!document.querySelector('#log').textContent.includes('Marina de Mahón, aquí Xaloc, cambio'))throw Error('Final transcript lost after release');
-     if(window.__micRequests)throw Error('PTT opened microphone twice');
+     if(window.__micRequests!==1)throw Error('PTT must open the microphone exactly once, got '+window.__micRequests);
+     if(!window.__trackPassed)throw Error('Microphone track was not passed to the recogniser');
      window.__speechError='network';
      ptt.dispatchEvent(new KeyboardEvent('keydown',{code:'Space',key:' ',bubbles:true}));
      await new Promise(r=>setTimeout(r,150));

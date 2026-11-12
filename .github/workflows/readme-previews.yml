@@ -11,6 +11,8 @@ on:
       - '*.js'
       - 'manifest.webmanifest'
       - 'icons/**'
+      - 'package.json'
+      - 'tests/**'
 permissions:
   contents: write
 concurrency:

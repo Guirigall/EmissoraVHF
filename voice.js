@@ -49,10 +49,10 @@ export const canListen=()=>!!Recognition;
 // Una sola captura de micròfon: la del reconeixedor. El permís pot trigar a arribar.
 export function listen(lang,onInterim=()=>{},onStatus=()=>{}){
  let rec=null,completed='',current='',error=null,stopping=false,aborted=false,ended=true;
- let retry=null,stopPromise=null,resolveStop=null,guard=null,restarts=0;
+ let retry=null,stopPromise=null,resolveStop=null,guard=null,startGuard=null,restarts=0;
  const text=()=>[completed,current].filter(Boolean).join(' ').trim();
- const finish=()=>{clearTimeout(guard);clearTimeout(retry);resolveStop?.({text:text(),error});resolveStop=null};
- const fail=code=>{error=code;onStatus('error',code)};
+ const finish=()=>{clearTimeout(startGuard);clearTimeout(guard);clearTimeout(retry);resolveStop?.({text:text(),error});resolveStop=null};
+ const fail=code=>{clearTimeout(startGuard);error=code;onStatus('error',code)};
  function start(){
   if(stopping||aborted)return;
   if(!Recognition){fail('unsupported');finish();return}
@@ -60,33 +60,35 @@ export function listen(lang,onInterim=()=>{},onStatus=()=>{}){
    rec=new Recognition();ended=false;current='';
    rec.lang=LOCALE[lang]||lang;rec.interimResults=true;rec.continuous=true;rec.maxAlternatives=1;
    const active=rec;
-   rec.onstart=()=>{if(aborted){active.abort();return}if(stopping){try{active.stop()}catch{}return}onStatus('ready')};
-   rec.onaudiostart=()=>{if(!stopping&&!aborted)onStatus('ready')};
+   rec.onstart=()=>{if(aborted){active.abort();return}if(stopping){try{active.stop()}catch{}return}onStatus('service')};
+   rec.onaudiostart=()=>{clearTimeout(startGuard);if(!stopping&&!aborted)onStatus('ready')};
    rec.onspeechstart=()=>{if(!stopping&&!aborted)onStatus('speech')};
    rec.onspeechend=()=>{if(!stopping&&!aborted)onStatus('ready')};
    rec.onresult=e=>{
-    if(aborted)return;
+    if(aborted)return;clearTimeout(startGuard);onStatus('result');
     // results és la llista completa de la sessió, també quan una frase es revisa.
     current=Array.from(e.results,r=>r[0]?.transcript||'').join(' ').trim();
     onInterim(text());
    };
    rec.onerror=e=>{if(aborted)return;if(e.error==='no-speech'){error='no-speech';return}fail(e.error)};
    rec.onend=()=>{
-    ended=true;if(aborted){finish();return}
+    clearTimeout(startGuard);onStatus('end');ended=true;if(aborted){finish();return}
     completed=text();current='';
     if(stopping){finish();return}
     // Alguns navegadors acaben la sessió durant una pausa encara que continuous=true.
     if((!error||error==='no-speech')&&restarts++<3){error=null;onStatus('starting');retry=setTimeout(start,150)}
     else {if(!error||error==='no-speech')fail('no-speech');finish()}
    };
-   onStatus('starting');rec.start();
+   onStatus('starting');
+   startGuard=setTimeout(()=>{if(stopping||aborted)return;fail('start-timeout');try{active.abort()}catch{}},12000);
+   rec.start();
   }catch(e){ended=true;fail(e.name==='NotAllowedError'?'not-allowed':'start');finish()}
  }
  start();
  return {
   stop(){
    if(stopPromise)return stopPromise;
-   stopping=true;clearTimeout(retry);
+   stopping=true;clearTimeout(startGuard);clearTimeout(retry);
    stopPromise=new Promise(resolve=>{resolveStop=resolve});
    if(ended||aborted){finish();return stopPromise}
    // stop() pot precedir onstart mentre s'accepta el permís: onstart ho tornarà a provar.
@@ -94,6 +96,6 @@ export function listen(lang,onInterim=()=>{},onStatus=()=>{}){
    try{rec.stop()}catch{}
    return stopPromise;
   },
-  abort(){aborted=true;stopping=true;clearTimeout(retry);try{rec?.abort()}catch{}finish()},
+  abort(){aborted=true;stopping=true;clearTimeout(startGuard);clearTimeout(retry);try{rec?.abort()}catch{}finish()},
  };
 }

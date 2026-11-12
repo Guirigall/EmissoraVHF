@@ -6,6 +6,7 @@ export const UI_NAMES={ca:'Català',es:'Español',en:'English',fr:'Français'};
 
 const T={
  ca:{
+  "voice.start":"Parla amb un toc","voice.stop":"Acaba i transmet","voice.diagnostics":"Diagnòstic de veu","voice.environment":"Mode: {mode} · Context segur: {secure} · En línia: {online} · Reconeixement disponible: {supported}","heard.startTimeout":"El navegador no ha començat a capturar àudio. Comprova els permisos del micròfon. Si uses Chromium sense servei de veu, prova Google Chrome o Edge.","voice.phase.request":"Petició de veu","voice.phase.starting":"Preparant reconeixedor","voice.phase.service":"Servei iniciat","voice.phase.ready":"Captura d’àudio iniciada","voice.phase.speech":"Parla detectada","voice.phase.result":"Transcripció rebuda","voice.phase.end":"Captura acabada","voice.phase.release":"Finalització demanada","voice.phase.complete":"Missatge transcrit","voice.phase.error":"Error",
   'app.title':'Emissora VHF · simulador','app.name':'Emissora VHF','app.subtitle':'Simulador de ràdio marina · Maó',
   'app.description':'Simulador didàctic d’emissora VHF marina: canals reals, estàtica, PTT amb la teva veu i estacions que responen.',
   'off.preparing':'Preparant fora de línia…','off.ready':'● Disponible fora de línia','off.none':'Sense mode fora de línia','off.https':'Obre-ho amb HTTPS o localhost',
@@ -51,6 +52,7 @@ const T={
   'lang.es':'Castellà','lang.en':'Anglès','lang.fr':'Francès',
  },
  es:{
+  "voice.start":"Habla con un toque","voice.stop":"Termina y transmite","voice.diagnostics":"Diagnóstico de voz","voice.environment":"Modo: {mode} · Contexto seguro: {secure} · En línea: {online} · Reconocimiento disponible: {supported}","heard.startTimeout":"El navegador no ha empezado a capturar audio. Revisa los permisos del micrófono. Si usas Chromium sin servicio de voz, prueba Google Chrome o Edge.","voice.phase.request":"Petición de voz","voice.phase.starting":"Preparando reconocimiento","voice.phase.service":"Servicio iniciado","voice.phase.ready":"Captura de audio iniciada","voice.phase.speech":"Habla detectada","voice.phase.result":"Transcripción recibida","voice.phase.end":"Captura terminada","voice.phase.release":"Finalización solicitada","voice.phase.complete":"Mensaje transcrito","voice.phase.error":"Error",
   'app.title':'Emisora VHF · simulador','app.name':'Emisora VHF','app.subtitle':'Simulador de radio marina · Mahón',
   'app.description':'Simulador didáctico de emisora VHF marina: canales reales, estática, PTT con tu voz y estaciones que responden.',
   'off.preparing':'Preparando sin conexión…','off.ready':'● Disponible sin conexión','off.none':'Sin modo sin conexión','off.https':'Ábrelo con HTTPS o localhost',
@@ -96,6 +98,7 @@ const T={
   'lang.es':'Castellano','lang.en':'Inglés','lang.fr':'Francés',
  },
  en:{
+  "voice.start":"Tap to talk","voice.stop":"Finish and transmit","voice.diagnostics":"Voice diagnostics","voice.environment":"Mode: {mode} · Secure context: {secure} · Online: {online} · Recognition available: {supported}","heard.startTimeout":"The browser has not started capturing audio. Check microphone permissions. If your Chromium build has no speech service, try Google Chrome or Edge.","voice.phase.request":"Speech requested","voice.phase.starting":"Preparing recognition","voice.phase.service":"Service started","voice.phase.ready":"Audio capture started","voice.phase.speech":"Speech detected","voice.phase.result":"Transcript received","voice.phase.end":"Capture ended","voice.phase.release":"Stop requested","voice.phase.complete":"Message transcribed","voice.phase.error":"Error",
   'app.title':'VHF Radio · simulator','app.name':'VHF Radio','app.subtitle':'Marine radio simulator · Mahón',
   'app.description':'Educational marine VHF radio simulator: real channels, static, push-to-talk with your voice and stations that answer.',
   'off.preparing':'Preparing offline mode…','off.ready':'● Available offline','off.none':'No offline mode','off.https':'Open it over HTTPS or localhost',
@@ -141,6 +144,7 @@ const T={
   'lang.es':'Spanish','lang.en':'English','lang.fr':'French',
  },
  fr:{
+  "voice.start":"Touchez pour parler","voice.stop":"Terminer et émettre","voice.diagnostics":"Diagnostic vocal","voice.environment":"Mode : {mode} · Contexte sécurisé : {secure} · En ligne : {online} · Reconnaissance disponible : {supported}","heard.startTimeout":"Le navigateur n’a pas commencé la capture audio. Vérifiez les autorisations du micro. Si votre Chromium n’a pas de service vocal, essayez Google Chrome ou Edge.","voice.phase.request":"Demande vocale","voice.phase.starting":"Préparation de la reconnaissance","voice.phase.service":"Service démarré","voice.phase.ready":"Capture audio démarrée","voice.phase.speech":"Parole détectée","voice.phase.result":"Transcription reçue","voice.phase.end":"Capture terminée","voice.phase.release":"Arrêt demandé","voice.phase.complete":"Message transcrit","voice.phase.error":"Erreur",
   'app.title':'Radio VHF · simulateur','app.name':'Radio VHF','app.subtitle':'Simulateur de radio marine · Mahón',
   'app.description':'Simulateur pédagogique de radio VHF marine : canaux réels, souffle, alternat avec votre voix et stations qui répondent.',
   'off.preparing':'Préparation hors ligne…','off.ready':'● Disponible hors ligne','off.none':'Pas de mode hors ligne','off.https':'Ouvrez-la en HTTPS ou sur localhost',

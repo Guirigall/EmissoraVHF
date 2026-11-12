@@ -26,6 +26,15 @@ const pendingTimers=new Set();
 function later(fn,ms){const id=setTimeout(()=>{pendingTimers.delete(id);fn()},ms);pendingTimers.add(id);return id}
 function cancelSession(){session++;voiceProcessing=false;cancelDsc();clearTimeout(msgTimer);msgTimer=null;for(const id of pendingTimers)clearTimeout(id);pendingTimers.clear();clearTimeout(textTxTimer);textTxTimer=null;clearInterval(textAnim);textAnim=null;clearTimeout(txTimer);recognizer?.abort();recognizer=null;stopMeter?.();stopMeter=null;state.tx=false;state.txLevel=0;state.queue.length=0;state.dialog=newState();for(const key of Object.keys(history))delete history[key];$('#heard').classList.remove('live');}
 
+// Només es registren fases i codis d’error, mai àudio ni claus d’API.
+const voiceEvents=[];
+function voiceDiagnostic(phase,code=''){
+ voiceEvents.push(new Date().toLocaleTimeString()+' · '+t('voice.phase.'+phase)+(code?' ['+code+']':''));
+ if(voiceEvents.length>12)voiceEvents.shift();renderVoiceDiagnostics();
+}
+function renderVoiceDiagnostics(){
+ $('#voiceDiagnostics').textContent=t('voice.environment',{mode:settings.mode,secure:String(isSecureContext),online:String(navigator.onLine),supported:String(canListen())})+'\n'+voiceEvents.join('\n');
+}
 /* ---------- Pantalla LCD ---------- */
 const DIGITS={0:'abcdef',1:'bc',2:'abged',3:'abgcd',4:'fgbc',5:'afgcd',6:'afgedc',7:'abc',8:'abcdefg',9:'abcdfg','-':'g',' ':''};
 function hex(x,y,w,h,vertical){
@@ -51,7 +60,8 @@ function render(){
  document.querySelectorAll('#meter i').forEach((b,i)=>b.classList.toggle('on',i<bars));
  $('#meterLabel').textContent=state.tx?'TX':'RX';
  $('#kScan').setAttribute('aria-pressed',state.scan);$('#power').setAttribute('aria-pressed',state.on);
- $('#ptt').disabled=!state.on||voiceProcessing;$('#ptt').classList.toggle('tx',state.tx);
+ $('#ptt').disabled=!state.on||voiceProcessing;
+ $('#voiceToggle').disabled=!state.on||voiceProcessing;$('#voiceToggle').setAttribute('aria-pressed',state.tx);$('#voiceToggle').textContent=t(state.tx?'voice.stop':'voice.start');$('#ptt').classList.toggle('tx',state.tx);
  $('#pttHint').textContent=t(!state.on?'ptt.off':state.tx?'ptt.tx':c.txAllowed?'ptt.ready':'ptt.noVoice');
  const dial=$('#dial');dial.setAttribute('aria-valuenow',state.channel);dial.setAttribute('aria-valuetext',t('aria.dial')+' '+state.channel+', '+channelName(c.nameKey));
  if(!state.rx&&!state.tx&&!msgTimer)lcdMessage('');
@@ -172,7 +182,7 @@ function canTransmit(){
  return true;
 }
 function recognitionError(error){
- const key=({'not-allowed':'heard.noMic','service-not-allowed':'heard.noMic','network':'heard.network','audio-capture':'heard.capture','language-not-supported':'heard.language','start':'heard.startFailed','unsupported':'heard.startFailed','timeout':'heard.timeout'})[error]||'heard.nothing';
+ const key=({'not-allowed':'heard.noMic','service-not-allowed':'heard.noMic','network':'heard.network','audio-capture':'heard.capture','language-not-supported':'heard.language','start':'heard.startFailed','unsupported':'heard.startFailed','timeout':'heard.timeout','start-timeout':'heard.startTimeout'})[error]||'heard.nothing';
  return t(key);
 }
 async function pttDown(){
@@ -182,12 +192,14 @@ async function pttDown(){
  const heard=$('#heard');heard.classList.add('live');heard.dataset.used='1';
  if(settings.mode==='voice'&&canListen()){
   heard.textContent=t('heard.starting');
-  const stamp=session;
+  const stamp=session;voiceDiagnostic('request');
   recognizer=listen(settings.lang,text=>{if(stamp===session)heard.textContent=text||t('heard.listening')},(phase,error)=>{
-   if(stamp!==session||!state.tx)return;
+   if(stamp!==session)return;voiceDiagnostic(phase,error);
+   if(!state.tx)return;
    if(phase==='error'){heard.textContent=recognitionError(error);return}
    state.txLevel=phase==='speech'?.65:0;render();
-   if(!heard.textContent||[t('heard.starting'),t('heard.listening')].includes(heard.textContent))heard.textContent=t(phase==='starting'?'heard.starting':'heard.listening');
+   if(!['starting','ready','service'].includes(phase))return;
+   if(!heard.textContent||[t('heard.starting'),t('heard.listening')].includes(heard.textContent))heard.textContent=t(phase==='ready'?'heard.listening':'heard.starting');
   });
  }else heard.textContent=t('heard.textMode');
  clearTimeout(txTimer);txTimer=setTimeout(()=>{if(state.tx){lcdMessage(t('lcd.timeout'),2500);pttUp()}},45000);
@@ -196,9 +208,10 @@ async function pttUp(){
  if(!state.tx||textTxTimer)return;clearTimeout(txTimer);state.tx=false;state.txLevel=0;audio.tx(false);stopMeter?.();stopMeter=null;render();
  const heard=$('#heard');heard.classList.remove('live');
  if(!recognizer)return;const r=recognizer,channel=txChannel,stamp=txSession;recognizer=null;voiceProcessing=true;render();heard.textContent=t('heard.processing');
+ voiceDiagnostic('release');
  const {text,error}=await r.stop();
  if(!state.on||stamp!==session)return;
- voiceProcessing=false;render();
+ voiceProcessing=false;render();voiceDiagnostic(text?'complete':'error',error||(!text?'no-result':''));
  if(text){heard.textContent='«'+text+'»';transmitted(text,channel,stamp);return}
  heard.textContent=recognitionError(error);
 }
@@ -233,6 +246,11 @@ function sendText(text){
  textTxTimer=setTimeout(()=>{clearInterval(textAnim);textAnim=null;textTxTimer=null;state.tx=false;state.txLevel=0;audio.tx(false);render();transmitted(text,channel,stamp)},Math.min(5000,500+text.length*45));
  $('#textInput').value='';$('#heard').textContent='«'+text+'»';$('#heard').dataset.used='1';
 }
+$('#voiceToggle').addEventListener('click',()=>{
+ if(state.tx){pttUp();return}
+ if(!canListen()){toast(t('heard.startFailed'));return}
+ settings.mode='voice';save();capabilities();pttDown();
+});
 const ptt=$('#ptt');
 ptt.addEventListener('pointerdown',e=>{ptt.setPointerCapture(e.pointerId);e.preventDefault();pttDown()});
 for(const ev of ['pointerup','pointercancel','lostpointercapture'])ptt.addEventListener(ev,()=>pttUp());
@@ -240,14 +258,14 @@ ptt.addEventListener('contextmenu',e=>e.preventDefault());
 $('#textForm').addEventListener('submit',e=>{e.preventDefault();sendText($('#textInput').value)});
 const typing=e=>['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName);
 addEventListener('keydown',e=>{
- if(typing(e)||e.ctrlKey||e.metaKey||e.altKey)return;
+ if(e.target.closest?.('#voiceToggle')||typing(e)||e.ctrlKey||e.metaKey||e.altKey)return;
  if(e.code==='Space'){e.preventDefault();if(!e.repeat)pttDown();return}
  if(e.repeat)return;
  const k=e.key.toLowerCase();
  if(k==='p')powerToggle();else if(k==='s')$('#kScan').click();else if(k==='h')$('#kHL').click();else if(k==='1')$('#k16').click();
  else if(e.target.closest?.('.knob'))return;else if(e.key==='ArrowUp'){e.preventDefault();$('#kUp').click()}else if(e.key==='ArrowDown'){e.preventDefault();$('#kDown').click()}
 });
-addEventListener('keyup',e=>{if(e.code==='Space')pttUp()});
+addEventListener('keyup',e=>{if(e.code==='Space'&&!e.target.closest?.('#voiceToggle'))pttUp()});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&state.tx)pttUp()});
 
 /* ---------- Alerta DSC de socors (mantenir premut 3 s) ---------- */
@@ -293,7 +311,7 @@ function applyLanguage(){
  for(const o of $('#aiModel').options)o.textContent=t(MODELS.find(m=>m.id===o.value).labelKey);
  if(!$('#heard').classList.contains('live')&&!state.tx&&!$('#heard').dataset.used)$('#heard').textContent=t('heard.initial',{over:pw.over});
  $('#offline').textContent=t(offlineKey);
- capabilities();render();if(typeof voiceWarning==='function')voiceWarning();
+ capabilities();render();renderVoiceDiagnostics();if(typeof voiceWarning==='function')voiceWarning();
 }
 function changeUi(lang){settings.ui=setUiLang(lang);save();applyLanguage()}
 $('#uiLang').addEventListener('change',e=>changeUi(e.target.value));

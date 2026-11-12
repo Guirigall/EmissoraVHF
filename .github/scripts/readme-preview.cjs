@@ -65,6 +65,14 @@ const report = { repository: repo, sourceCommit: process.env.GITHUB_SHA, url: `h
      await v.powerToggle();await v.powerToggle();v.setChannel(16);document.querySelector('#log').textContent='';
 
     });
+    await page.evaluate(()=>{window.__speechError=null;globalThis.__vhf.setChannel(9)});
+    await page.locator('#voiceToggle').click();
+    await page.waitForFunction(()=>globalThis.__vhf.state.tx);
+    await page.waitForTimeout(150);
+    await page.locator('#voiceToggle').click();
+    await page.waitForFunction(()=>document.querySelector('#log').textContent.includes('Marina de Mahón, aquí Xaloc, cambio'));
+    if(await page.locator('.title .app-icon').getAttribute('src')!=='./icons/icon.svg')throw Error('Old header icon');
+    await page.evaluate(async()=>{await globalThis.__vhf.powerToggle();await globalThis.__vhf.powerToggle();globalThis.__vhf.setChannel(16);document.querySelector('#log').textContent=''});
     await page.waitForTimeout(500);
    }
    if (errors.length) throw Error(errors.join('\n'));

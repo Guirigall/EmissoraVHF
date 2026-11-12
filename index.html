@@ -14,9 +14,10 @@
 </head>
 <body>
 <header class="top">
- <div class="title"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M14 36V12l6-8 6 8v24M14 20h12M20 4v-2"/><path d="M8 10a14 14 0 0 1 0 14M32 10a14 14 0 0 1 0 14M4 6a20 20 0 0 1 0 22M36 6a20 20 0 0 1 0 22"/></svg><div><strong data-i18n="app.name">Emissora VHF</strong><span data-i18n="app.subtitle">Simulador de ràdio marina · Maó</span></div></div>
+ <div class="title"><img class="app-icon" src="./icons/icon.svg" width="48" height="48" alt=""><div><strong data-i18n="app.name">Emissora VHF</strong><span data-i18n="app.subtitle">Simulador de ràdio marina · Maó</span></div></div>
  <div class="top-right">
   <label class="ui-lang"><span class="sr-only" data-i18n="set.ui">Idioma de l’aplicació</span><select id="uiLang"></select></label>
+  <span class="pill">v1.2.3</span>
   <span id="offline" class="pill" role="status" data-i18n="off.preparing">Preparant fora de línia…</span>
  </div>
 </header>
@@ -54,6 +55,8 @@
    <button id="ptt" class="ptt" data-i18n-attr="aria-label:ptt.aria" aria-label="PTT: mantén premut per parlar" disabled><span class="ptt-ring"></span><b>PTT</b><span id="aiBadge" class="ai-badge" hidden>IA</span><small id="pttHint" data-i18n="ptt.off">Encén la ràdio</small></button>
    <div class="mic-side">
     <p id="heard" class="heard" aria-live="polite"></p>
+    <button class="btn" id="voiceToggle" data-i18n="voice.start" type="button" aria-pressed="false">Parla amb un toc</button>
+    <details class="voice-diagnostics"><summary data-i18n="voice.diagnostics">Diagnòstic de veu</summary><pre id="voiceDiagnostics"></pre></details>
     <form id="textForm" class="text-tx" autocomplete="off"><input id="textInput" data-i18n-attr="placeholder:text.placeholder;aria-label:text.aria" placeholder="…o escriu el missatge i prem Transmet" aria-label="Missatge per transmetre"><button class="btn" id="textSend" data-i18n="text.send">Transmet</button></form>
     <div class="phrases" id="phrases" data-i18n-attr="aria-label:phrases.aria" aria-label="Frases d’exemple"></div>
    </div>

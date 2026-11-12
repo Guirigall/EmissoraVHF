@@ -38,3 +38,9 @@ test('Aborting cancels pending restarts and ignores late results',async()=>{
  const before=Recognition.instances.length;rec.result('late');await new Promise(r=>setTimeout(r,180));
  assert.equal(Recognition.instances.length,before);assert.equal(count,0);
 });
+
+test('Service startup is distinct from actual audio capture',async()=>{
+ const phases=[];const capture=listen('es',()=>{},p=>phases.push(p));const rec=last();rec.ready();
+ assert.ok(phases.includes('service'));assert.ok(!phases.includes('ready'));
+ rec.onaudiostart();assert.equal(phases.at(-1),'ready');capture.abort();
+});

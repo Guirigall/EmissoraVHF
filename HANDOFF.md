@@ -1,6 +1,6 @@
 # Handoff · Emissora VHF
 
-Document de traspàs per continuar el projecte sense context previ. Estat a **12 de novembre de 2026**, versió de memòria cau `v1.2.2`.
+Document de traspàs per continuar el projecte sense context previ. Estat a **12 de novembre de 2026**, versió de memòria cau `v1.2.3`.
 
 ### Millores de continuació (12 de novembre)
 
@@ -122,3 +122,13 @@ Publicar: fer `git push` a `main`. GitHub Pages es reconstrueix sol en un o dos 
 - Es distingeix preparació d’escolta real; es processen resultats després de deixar anar el botó (fins a 8 s), es recuperen finals prematurs de sessió i s’eviten transcripcions duplicades.
 - Errors de xarxa, captura, permís i llengua amb missatges en els quatre idiomes.
 - Proves unitàries amb reconeixedor simulat i regressió Chromium del PTT complet. La veu real del dispositiu continua requerint comprovació amb l’usuari; el servei del navegador necessita connexió.
+
+## Seguiment del PTT · v1.2.3
+
+L’usuari informa que el PTT real encara no funciona. Les proves simulades no demostren que el servei de transcripció del seu navegador funcioni. Pendent: navegador/dispositiu i fases/codi d’error reals.
+
+- La capçalera ara reutilitza `icons/icon.svg` (abans tenia un altre SVG independent).
+- Alternativa «Parla amb un toc»: inicia amb un clic i acaba amb un altre; evita haver de mantenir la pulsació mentre es concedeix permís. Selecciona explícitament mode veu.
+- Diagnòstic visible: entorn segur, connexió, disponibilitat del reconeixedor i les últimes fases/codis d’error. No desa àudio ni claus; només viu en memòria.
+- «Escoltant» només quan arriba `audiostart`. Límit de 12 s si no arriba captura real, amb missatge explícit.
+- Versió visible a la capçalera per detectar una PWA desactualitzada.

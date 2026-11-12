@@ -1,5 +1,5 @@
 // Memòria cau de l'aplicació: tot funciona sense connexió excepte el reconeixement de veu de Chrome.
-const VERSION='v1.2.0';
+const VERSION='v1.2.1';
 const PREFIX='emissora-vhf:'+self.registration.scope+':';
 const CACHE=PREFIX+VERSION;
 const FILES=['./','./index.html','./style.css','./app.js','./audio.js','./voice.js','./dialog.js','./stations.js','./channels.js','./traffic.js','./chatter.js','./i18n.js','./ai.js','./vendor/anthropic-sdk.mjs','./manifest.webmanifest','./icons/icon.svg','./icons/icon-192.png','./icons/icon-512.png'];

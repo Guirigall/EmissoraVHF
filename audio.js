@@ -21,8 +21,8 @@ export class RadioAudio{
   this.update();
  }
  resume(){return this.ctx?.state==='suspended'?this.ctx.resume():Promise.resolve()}
- stop(){if(!this.ctx)return;clearInterval(this.crackleTimer);this.ctx.close();this.ctx=null}
- setVolume(v){this.volume=v;if(this.master)this.master.gain.setTargetAtTime(v,this.ctx.currentTime,.03)}
+ stop(){if(!this.ctx)return;clearInterval(this.crackleTimer);this.ctx.close();this.ctx=null;this.master=null;this.carrier=0;this.transmitting=false}
+ setVolume(v){this.volume=v;if(this.ctx&&this.master)this.master.gain.setTargetAtTime(v,this.ctx.currentTime,.03)}
  setSquelch(s){this.squelch=s;this.update()}
  // Nivell de l'estàtica que se sent: el squelch la talla si no hi ha portadora; un senyal fort l'apaga (efecte captura de l'FM).
  level(){
@@ -76,8 +76,10 @@ export class RadioAudio{
  // Nivell del micròfon mentre es transmet (només per al vúmetre).
  async micMeter(onLevel){
   if(!navigator.mediaDevices?.getUserMedia||!this.ctx)return ()=>{};
+  const ctx=this.ctx;
   let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}})}catch{return ()=>{}}
-  const src=this.ctx.createMediaStreamSource(stream),an=this.ctx.createAnalyser();an.fftSize=512;src.connect(an);
+  if(this.ctx!==ctx||ctx.state==='closed'){stream.getTracks().forEach(t=>t.stop());return ()=>{}}
+  const src=ctx.createMediaStreamSource(stream),an=ctx.createAnalyser();an.fftSize=512;src.connect(an);
   const data=new Uint8Array(an.fftSize);let on=true;
   const loop=()=>{if(!on)return;an.getByteTimeDomainData(data);let peak=0;for(const v of data)peak=Math.max(peak,Math.abs(v-128));onLevel(peak/128);requestAnimationFrame(loop)};loop();
   return ()=>{on=false;src.disconnect();stream.getTracks().forEach(t=>t.stop());onLevel(0)};

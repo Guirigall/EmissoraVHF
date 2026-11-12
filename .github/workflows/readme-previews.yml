@@ -6,6 +6,11 @@ on:
     paths:
       - '.github/workflows/readme-previews.yml'
       - '.github/scripts/readme-preview.cjs'
+      - 'index.html'
+      - 'style.css'
+      - '*.js'
+      - 'manifest.webmanifest'
+      - 'icons/**'
 permissions:
   contents: write
 concurrency:
@@ -26,6 +31,8 @@ jobs:
         run: |
           npm install --prefix .readme-browser --no-package-lock playwright@1.64.1
           .readme-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Proves de regressió
+        run: npm test
       - name: Captura l’aplicació real
         run: node .github/scripts/readme-preview.cjs
       - name: Desa les captures al repositori

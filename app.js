@@ -21,7 +21,10 @@ const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(settings))}catch{}};
 
 const state={on:false,channel:settings.channel,power:settings.power,tx:false,rx:null,scan:false,scanHold:0,lastScan:0,dialog:newState(),queue:[],nextData:0,txLevel:0,signal:0};
 const traffic=new Traffic(Date.now());
-let rxToken=0,recognizer=null,stopMeter=null,txTimer=null,textTxTimer=null,msgTimer=null;
+let rxToken=0,recognizer=null,stopMeter=null,txTimer=null,textTxTimer=null,msgTimer=null,textAnim=null,session=0,powerBusy=false,txChannel=null,txSession=null,cancelDsc=()=>{};
+const pendingTimers=new Set();
+function later(fn,ms){const id=setTimeout(()=>{pendingTimers.delete(id);fn()},ms);pendingTimers.add(id);return id}
+function cancelSession(){session++;cancelDsc();clearTimeout(msgTimer);msgTimer=null;for(const id of pendingTimers)clearTimeout(id);pendingTimers.clear();clearTimeout(textTxTimer);textTxTimer=null;clearInterval(textAnim);textAnim=null;clearTimeout(txTimer);recognizer?.abort();recognizer=null;stopMeter?.();stopMeter=null;state.tx=false;state.txLevel=0;state.queue.length=0;state.dialog=newState();for(const key of Object.keys(history))delete history[key];$('#heard').classList.remove('live');}
 
 /* ---------- Pantalla LCD ---------- */
 const DIGITS={0:'abcdef',1:'bc',2:'abged',3:'abgcd',4:'fgbc',5:'afgcd',6:'afgedc',7:'abc',8:'abcdefg',9:'abcdfg','-':'g',' ':''};
@@ -115,7 +118,7 @@ setInterval(loop,120);
 
 /* ---------- Canals i botons ---------- */
 function setChannel(ch,{quiet=false}={}){
- if(ch===state.channel)return;interruptRx('tune');state.channel=ch;settings.channel=ch;save();
+ if(state.tx||ch===state.channel)return;interruptRx('tune');state.channel=ch;settings.channel=ch;save();
  state.nextData=Date.now()+rand(300,1500);if(state.on){audio.tune();if(!quiet)audio.beep(2600,18,.05)}
  $('#channelAnnounce').textContent=t('aria.dial')+' '+ch;render();
 }
@@ -127,12 +130,16 @@ function scanStep(now){
  let next=step(state.channel,1);while(!info(next).txAllowed)next=step(next,1);setChannel(next,{quiet:true});
 }
 async function powerToggle(){
- if(state.on){interruptRx('tune');state.on=false;state.scan=false;if(state.tx)await pttUp();audio.stop();render();return}
- try{await audio.start()}catch{toast(t('toast.noAudio'));return}
+ if(powerBusy)return;
+ if(state.on){interruptRx('tune');cancelSession();state.on=false;state.scan=false;audio.stop();render();return}
+ powerBusy=true;
+ try{
+ try{await audio.start();await audio.resume()}catch{audio.stop();toast(t('toast.noAudio'));return}
  audio.setVolume(settings.volume);audio.setSquelch(settings.squelch);await audio.resume();
  state.on=true;state.nextData=0;render();
  $('#freq').textContent='NAVÍLIA VHF';showDigits('88');audio.beep(1800,90);await sleep(650);audio.beep(2400,70);render();
  if(!settings.boot){settings.boot=true;save();log('system',t('sys.on',{c:state.channel}))}
+ }finally{powerBusy=false}
 }
 $('#power').onclick=powerToggle;
 $('#k16').onclick=()=>{if(state.on)setChannel(state.channel===16?9:16)};
@@ -167,25 +174,28 @@ function canTransmit(){
 async function pttDown(){
  if(state.tx||!canTransmit())return;
  if(state.rx){const kind=state.rx.kind;interruptRx('step');if(kind!=='distant')log('system',t('sys.stepped'))}
- state.scan=false;state.tx=true;audio.tx(true);lcdMessage(t('lcd.tx'));render();
+ txChannel=state.channel;txSession=session;state.scan=false;state.tx=true;audio.tx(true);lcdMessage(t('lcd.tx'));render();
  const heard=$('#heard');heard.classList.add('live');heard.dataset.used='1';
  if(settings.mode==='voice'&&canListen()){
   heard.textContent=t('heard.listening');
   recognizer=listen(settings.lang,text=>{heard.textContent=text||t('heard.listening')});
-  audio.micMeter(l=>{state.txLevel=Math.min(1,l*2.2);$('#ptt').style.setProperty('--lvl',state.txLevel);render()}).then(stop=>{if(state.tx)stopMeter=stop;else stop()});
+  const stamp=session,currentTx=recognizer;
+  audio.micMeter(l=>{state.txLevel=Math.min(1,l*2.2);$('#ptt').style.setProperty('--lvl',state.txLevel);render()}).then(stop=>{if(state.tx&&stamp===session&&currentTx===recognizer)stopMeter=stop;else stop()});
  }else heard.textContent=t('heard.textMode');
  clearTimeout(txTimer);txTimer=setTimeout(()=>{if(state.tx){lcdMessage(t('lcd.timeout'),2500);pttUp()}},45000);
 }
 async function pttUp(){
  if(!state.tx||textTxTimer)return;clearTimeout(txTimer);state.tx=false;state.txLevel=0;audio.tx(false);stopMeter?.();stopMeter=null;render();
  const heard=$('#heard');heard.classList.remove('live');
- if(!recognizer)return;const r=recognizer;recognizer=null;heard.textContent=t('heard.processing');
+ if(!recognizer)return;const r=recognizer,channel=txChannel,stamp=txSession;recognizer=null;heard.textContent=t('heard.processing');
  const {text,error}=await r.stop();
- if(text){heard.textContent='«'+text+'»';transmitted(text);return}
+ if(!state.on||stamp!==session)return;
+ if(text){heard.textContent='«'+text+'»';transmitted(text,channel,stamp);return}
  heard.textContent=t(error==='not-allowed'||error==='service-not-allowed'?'heard.noMic':error==='network'?'heard.network':'heard.nothing');
 }
-async function transmitted(text){
- const channel=state.channel,heard=traffic.heard(channel),context=[...(history[channel]||[])];
+async function transmitted(text,channel=state.channel,stamp=session){
+ if(!state.on||stamp!==session)return;
+ const heard=traffic.heard(channel),context=[...(history[channel]||[])];
  log('me',text,settings.vessel+' '+t('log.you'));remember(channel,settings.vessel+' (you)',text);
  const local=()=>respond({text,channel,lang:settings.lang,ui:settings.ui,power:state.power,vessel:settings.vessel,state:state.dialog,heard});
  if(!settings.ai||!settings.apiKey){deliver(local(),channel);return}
@@ -193,11 +203,12 @@ async function transmitted(text){
  const heardBox=$('#heard'),before=heardBox.textContent,mark='  · '+t('ai.thinking');heardBox.textContent=before+mark;
  try{
   const r=await aiRespond({apiKey:settings.apiKey,model:settings.model,text,channel,lang:settings.lang,ui:settings.ui,power:state.power,vessel:settings.vessel,heard,history:context});
-  deliver(r,channel);
+  if(state.on&&stamp===session)deliver(r,channel);
  }catch(e){
+  if(!state.on||stamp!==session)return;
   log('system',t('sys.aiDown',{msg:e.message}));
   deliver(local(),channel);
- }finally{if(heardBox.textContent.endsWith(mark))heardBox.textContent=before}
+ }finally{if(stamp===session&&heardBox.textContent.endsWith(mark))heardBox.textContent=before}
 }
 function deliver(r,txChannel=state.channel){
  for(const tip of r.tips)log('tip',t('log.tip')+tip);
@@ -207,9 +218,10 @@ function deliver(r,txChannel=state.channel){
 function sendText(text){
  text=text.trim();if(!text||!canTransmit())return;
  if(state.tx)return;if(state.rx)interruptRx('step');
- state.scan=false;state.tx=true;audio.tx(true);lcdMessage(t('lcd.tx'));
- const anim=setInterval(()=>{state.txLevel=rand(.35,.9);render()},110);render();
- textTxTimer=setTimeout(()=>{clearInterval(anim);textTxTimer=null;state.tx=false;state.txLevel=0;audio.tx(false);render();transmitted(text)},Math.min(5000,500+text.length*45));
+ txChannel=state.channel;txSession=session;state.scan=false;state.tx=true;audio.tx(true);lcdMessage(t('lcd.tx'));
+ const channel=txChannel,stamp=txSession;
+ textAnim=setInterval(()=>{state.txLevel=rand(.35,.9);render()},110);render();
+ textTxTimer=setTimeout(()=>{clearInterval(textAnim);textAnim=null;textTxTimer=null;state.tx=false;state.txLevel=0;audio.tx(false);render();transmitted(text,channel,stamp)},Math.min(5000,500+text.length*45));
  $('#textInput').value='';$('#heard').textContent='«'+text+'»';$('#heard').dataset.used='1';
 }
 const ptt=$('#ptt');
@@ -232,13 +244,14 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&state.tx)p
 /* ---------- Alerta DSC de socors (mantenir premut 3 s) ---------- */
 (()=>{const b=$('#kDsc');let timer=null,count=0;
  const cancel=()=>{if(!timer)return;clearInterval(timer);timer=null;b.classList.remove('arming');render()};
- b.addEventListener('pointerdown',e=>{if(!state.on){toast(t('toast.powerFirst'));return}b.setPointerCapture(e.pointerId);count=3;b.classList.add('arming');lcdMessage(t('lcd.dscHold',{n:3}));audio.beep(1000,120,.2);
-  timer=setInterval(()=>{count--;if(count>0){lcdMessage(t('lcd.dscHold',{n:count}));audio.beep(1000,120,.2);return}
+ cancelDsc=cancel;
+ b.addEventListener('pointerdown',e=>{if(!state.on){toast(t('toast.powerFirst'));return}if(state.tx)return;b.setPointerCapture(e.pointerId);count=3;b.classList.add('arming');lcdMessage(t('lcd.dscHold',{n:3}));audio.beep(1000,120,.2);
+  timer=setInterval(()=>{if(!state.on){cancel();return}count--;if(count>0){lcdMessage(t('lcd.dscHold',{n:count}));audio.beep(1000,120,.2);return}
    cancel();interruptRx('tune');setChannel(16);lcdMessage(t('lcd.dscSent'),4000);
-   for(let i=0;i<6;i++)setTimeout(()=>audio.beep(i%2?2100:1300,220,.18),i*260);
+   for(let i=0;i<6;i++)later(()=>audio.beep(i%2?2100:1300,220,.18),i*260);
    log('system',t('sys.dsc'));
    const r=dscAlert({lang:settings.lang,ui:settings.ui,vessel:settings.vessel,state:state.dialog});r.replies.forEach(x=>x.channel=16);
-   setTimeout(()=>deliver(r),3500);
+   later(()=>deliver(r),3500);
   },1000)});
  for(const ev of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(ev,()=>{if(timer){cancel();lcdMessage(t('lcd.dscCancel'),1500)}});
 })();

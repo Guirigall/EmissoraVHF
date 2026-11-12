@@ -1,6 +1,15 @@
 # Handoff · Emissora VHF
 
-Document de traspàs per continuar el projecte sense context previ. Estat a **12 de novembre de 2026**, versió de memòria cau `v1.2.0`, commit `dbe63d7`.
+Document de traspàs per continuar el projecte sense context previ. Estat a **12 de novembre de 2026**, versió de memòria cau `v1.2.1`.
+
+### Millores de continuació (12 de novembre)
+
+- Apagar cancel·la TX, micròfon, DSC, respostes i historial de la sessió. Les respostes IA i transcripcions tardanes es descarten.
+- El canal queda fix durant el PTT; la transcripció conserva el canal original en deixar-lo anar.
+- Volum utilitzable amb la ràdio apagada i alliberament del micròfon si el permís arriba després de tancar l’àudio.
+- Proves de regressió d’àudio i comprovació en Chromium d’apagar durant TX, canviar volum i tornar a encendre.
+- Les captures es regeneren quan canvien els fitxers de l’aplicació, després d’executar les proves.
+
 
 - **App publicada:** https://guirigall.github.io/EmissoraVHF/ (GitHub Pages, branca `main`, arrel del repositori)
 - **Repositori:** https://github.com/Guirigall/EmissoraVHF (públic)
@@ -74,7 +83,7 @@ Publicar: fer `git push` a `main`. GitHub Pages es reconstrueix sol en un o dos 
 - Model per defecte `claude-opus-5-5`; opcions `claude-sonnet-5-5` i `claude-haiku-5-5` (aquest sense `fallbacks`).
 - Petició: `client.beta.messages.parse` amb `betaJSONSchemaOutputFormat` (JSON validat: `replies[{speaker, lang, text}]` i `tip`), `output_config.effort: 'low'` per respondre ràpid, `cache_control` al text de sistema, i `betas: ['server-side-fallback-2026-07-01']` + `fallbacks: 'default'` (si el model principal declina, l’API ho torna a provar amb un altre model).
 - Client del navegador amb `dangerouslyAllowBrowser: true`: és acceptable només perquè cada usuari hi posa la seva clau.
-- Cost orientatiu: un o dos cèntims per missatge amb Opus.
+- Cost segons model i ús de l’API; no s’ha verificat cap import per missatge.
 - **Encara no s’ha provat contra l’API real.** Les proves al navegador s’han fet amb el servei simulat (interceptant `fetch`): petició, resposta i error de clau invàlida. La primera prova real s’ha de fer amb «Prova la connexió» a Configuració.
 - Per actualitzar el SDK: `npm install @anthropic-ai/sdk` en una carpeta temporal, i amb esbuild empaquetar una entrada que exporti `default as Anthropic` i `betaJSONSchemaOutputFormat` de `@anthropic-ai/sdk/helpers/beta/json-schema`, amb `--bundle --format=esm --platform=browser --minify`. Desar el resultat a `vendor/anthropic-sdk.mjs` i actualitzar `vendor/VERSION`.
 
@@ -94,7 +103,7 @@ Publicar: fer `git push` a `main`. GitHub Pages es reconstrueix sol en un o dos 
 
 ## Limitacions conegudes i idees pendents
 
-- Les captures de `docs/images/` són d’abans de la traducció. El flux «Captures del README» només s’executa sol si canvien els seus propis fitxers; es pot llançar a mà a **Actions → Captures del README → Run workflow**.
+- El flux «Captures del README» comprova el navegador i actualitza les captures quan canvien els fitxers de l’app. També es pot llançar manualment a Actions.
 - El manifest (`manifest.webmanifest`) té el nom en català: a la pantalla d’inici del mòbil l’app es diu «Emissora VHF» en qualsevol idioma. Es podrien fer manifests per idioma, com a CablejatElectric.
 - El motor local busca paraules: amb frases molt imprevistes pot no encertar (per això hi ha el mode IA).
 - El reconeixement de veu de Chrome envia l’àudio als servidors de Google i necessita Internet.

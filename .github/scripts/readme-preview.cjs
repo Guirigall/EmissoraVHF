@@ -23,7 +23,21 @@ const report = { repository: repo, sourceCommit: process.env.GITHUB_SHA, url: `h
    await page.waitForTimeout(repo === 'MotorMarino' ? 12000 : 8000);
    await page.evaluate(() => Promise.all([...document.images].map(i => i.complete ? Promise.resolve() : new Promise(r => { i.onload=r;i.onerror=r;setTimeout(r,4000); }))));
    if ((await page.locator('body').innerText()).trim().length < 80) throw Error('Empty application');
-   if (repo === 'EmissoraVHF') { await page.locator('#power').click(); await page.waitForTimeout(500); }
+   if (repo === 'EmissoraVHF') {
+    await page.evaluate(async()=>{
+     const v=globalThis.__vhf;
+     await v.powerToggle();v.setChannel(9);v.sendText('Marina de Mahón, aquí Xaloc, cambio');
+     if(!v.state.tx)throw Error('Text TX did not start');
+     await v.powerToggle();
+     if(v.state.tx||v.state.queue.length)throw Error('Shutdown left active TX or replies');
+     document.querySelector('#vol').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}));
+     await new Promise(r=>setTimeout(r,3000));
+     if(v.state.tx||v.state.queue.length)throw Error('Late TX after shutdown');
+     const log=document.querySelector('#log');log.textContent='';
+     await v.powerToggle();v.setChannel(16);
+    });
+    await page.waitForTimeout(500);
+   }
    if (errors.length) throw Error(errors.join('\n'));
    if (repo === 'MotorMarino') await page.locator('canvas').first().waitFor({state:'visible',timeout:30000});
    if (repo === 'CablejatElectric') await page.locator('.workspace').scrollIntoViewIfNeeded();

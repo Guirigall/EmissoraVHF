@@ -1,134 +1,159 @@
-# Handoff · Emissora VHF
+# Handoff · EmissoraVHF
 
-Document de traspàs per continuar el projecte sense context previ. Estat a **12 de novembre de 2026**, versió de memòria cau `v1.2.3`.
+Document autosuficient per continuar el projecte sense llegir la conversa. Actualitzat el **12 de novembre de 2026**. Estat funcional: **v1.2.3**, segons `sw.js` i el distintiu de la capçalera. `package.json` encara indica `1.0.0`: són versions diferents actualment.
 
-### Millores de continuació (12 de novembre)
+**Prioritat immediata: el PTT amb micròfon real continua sense funcionar segons l’usuari. La causa no està identificada. Les proves amb reconeixement simulat passen i no demostren que el servei real funcioni.** L’usuari encara no ha confirmat el resultat de l’alternativa i el diagnòstic introduïts a v1.2.3.
 
-- Apagar cancel·la TX, micròfon, DSC, respostes i historial de la sessió. Les respostes IA i transcripcions tardanes es descarten.
-- El canal queda fix durant el PTT; la transcripció conserva el canal original en deixar-lo anar.
-- Volum utilitzable amb la ràdio apagada i alliberament del micròfon si el permís arriba després de tancar l’àudio.
-- Proves de regressió d’àudio i comprovació en Chromium d’apagar durant TX, canviar volum i tornar a encendre.
-- Les captures es regeneren quan canvien els fitxers de l’aplicació, després d’executar les proves.
+- Repositori públic: <https://github.com/Guirigall/EmissoraVHF>
+- Aplicació: <https://guirigall.github.io/EmissoraVHF/>
+- Carpeta local: `/var/home/nocal/Projectes/Emissora-VHF` (també accessible com `/home/nocal/Projectes/Emissora-VHF` en aquest entorn).
+- Publicació: GitHub Pages des de `main`, arrel del repositori.
 
+## 1. Objectiu i destinataris
 
-- **App publicada:** https://guirigall.github.io/EmissoraVHF/ (GitHub Pages, branca `main`, arrel del repositori)
-- **Repositori:** https://github.com/Guirigall/EmissoraVHF (públic)
-- **Carpeta local de treball:** `Projectes/Emissora-VHF`
+PWA educativa que simula una emissora VHF marina ambientada al port de Maó, Menorca. L’usuari selecciona un canal, manté el PTT premut, parla i escolta una resposta d’una marina, dels pràctics, de Salvament Marítim o d’un altre veler. També pot transmetre text escrit i escoltar trànsit de fons amb soroll de ràdio.
 
-## Què és
+Es busca una experiència de pràctica accessible des d’ordinador i mòbil, instal·lable com una aplicació. El destinatari concret és l’usuari que manté el compte GitHub **Guirigall** i vol practicar comunicacions de ràdio marina. No s’ha definit un públic comercial ni un nivell formatiu concret.
 
-PWA didàctica que simula una emissora VHF marina ambientada al port de Maó (Menorca). L’usuari tria el canal amb un dial, prem el PTT, parla (o escriu) i li responen estacions i vaixells. En moure el dial se sent estàtica, converses d’altres vaixells, veus llunyanes ininteligibles i ràfegues de dades DSC/AIS. Tot és fictici i amb finalitat educativa; no serveix per navegar.
+Estacions, posicions, abast, diàlegs i ús dels canals als escenaris són ficticis o simplificats. No és una eina per navegar ni substitueix la formació de radiooperador. Les assignacions dels escenaris no s’han de presentar com els canals operatius reals del port.
 
-Funcions principals:
+## 2. Estat actual: implementat i verificat
 
-- Pla de canals real (UIT, apèndix 18): 1–28 i 60–88, freqüències de transmissió i recepció, dúplex, canals només de dades (70, 75, 76, 87, 88) i canals limitats a 1 W (15, 17).
-- So generat amb Web Audio: estàtica filtrada, squelch amb «cua», efecte de captura de l’FM, clics de PTT i de dial, veus llunyanes sintètiques, ràfegues DSC i AIS.
-- PTT amb el ratolí, el dit o la barra d’espai; reconeixement de veu del navegador; alternativa de text i frases d’exemple.
-- Estacions que responen: Marina de Maó (16 i 9), Pràctics de Maó (16 i 12), Salvament Marítim (16 i 10) i el veler Tramuntana (16 i 72). També responen les persones sentides fa poc en un canal.
-- Abast segons la potència: 25 W arriben a 25 milles; 1 W a 5 milles. Salvament és a 18 milles, així que amb 1 W no et sent.
-- Mayday, pan-pan i seguretat; alerta DSC simulada (mantenir premut DISTRESS 3 s).
-- Trànsit de fons generat sobre la marxa: no es repeteix.
-- Escàner (SCAN), 16/9, H/L, comandaments giratoris de volum, squelch i canal.
-- Consells de procediment (identificar-se, acabar amb «cambio», crida al 16 i canvi al canal de treball, canal equivocat, abast).
-- Mode IA opcional amb Claude per entendre qualsevol frase.
-- Interfície en català, castellà, anglès i francès. Llengua de ràdio en castellà, anglès o francès.
-- Funciona fora de línia (excepte el reconeixement de veu i el mode IA).
+### Funcions implementades
 
-## Com s’executa i es prova
+- Emissora amb pantalla de canal, freqüències TX/RX, indicadors, escàner, accés 16/9, potència H/L, volum, squelch i dial.
+- `channels.js` defineix canals 1–28 i 60–88, dúplex, restriccions de veu i de potència. El handoff anterior atribuïa el pla a l’UIT; en aquesta continuació no s’ha contrastat externament tot el pla. Llegir el codi i les proves abans d’afirmar conformitat completa.
+- Web Audio genera estàtica, clics, squelch, veus llunyanes i ràfegues DSC/AIS.
+- Motor local de conversa, text escrit, frases d’exemple, consells de procediment, mayday, pan-pan i DSC de socors simulat mantenint DISTRESS tres segons.
+- Estacions de `stations.js`: marina, canals 16/9, a 1,5 milles; pràctics, 16/12, a 2 milles; Salvament, 16/10, a 18 milles; veler Tramuntana, 16/72, a 3 milles. Distàncies de simulació. L’abast simulat és de 25 milles amb 25 W i 5 milles amb 1 W.
+- Trànsit de fons generat amb variacions i memòria recent per canal; no és una garantia que mai es repeteixi contingut.
+- Interfície i consells en català, espanyol, anglès i francès. Comunicacions de ràdio en espanyol, anglès o francès.
+- PWA amb manifest, icones, còpia fora de línia i preferències al navegador. Reconeixement de veu i IA opcional requereixen serveis externs; no s’han de prometre fora de línia.
+- Mode Claude opcional, amb retorn al motor local si falla.
 
-Sense dependències ni compilació: és HTML, CSS i mòduls ES servits estàticament.
+### Canvis recents
+
+| Versió | Canvis |
+|---|---|
+| v1.2.1 | Apagar cancel·la transmissió, temporitzadors DSC, micròfon i cua de respostes; invalida resultats tardans de la sessió; neteja historial i estat de diàleg. Canal fix durant TX i preservat en processar la transcripció. Volum amb la ràdio apagada i alliberament de permisos de micròfon tardans corregits. |
+| v1.2.2 | Icona d’emissora fixa horitzontal amb micròfon separat, SVG i PNG de 192/512 px. Eliminada la segona captura de micròfon per al vúmetre durant el PTT. Gestió de resultats finals després de deixar anar el botó, sessions acabades prematurament i textos revisats. Errors de veu traduïts. |
+| v1.2.3 | La capçalera reutilitza `icons/icon.svg`. Botó «Parla amb un toc» per començar amb un clic i acabar amb un altre. Diagnòstic de fases/codis visible i versió a la capçalera. «Escoltant» només després de `audiostart`; límit de 12 s si no comença la captura. |
+
+L’usuari ha dit que **la icona nova està bé**. Va indicar que el dibuix antic encara apareixia a dalt a l’esquerra; això s’ha corregit a v1.2.3. No s’ha rebut una confirmació posterior.
+
+### Evidència i límits de les proves
+
+- `npm test` passa amb els vuit fitxers de prova actuals. No confondre el recompte de fitxers del resum local amb el nombre de casos interns; el recompte antic de «16 proves» ha quedat obsolet.
+- El flux de GitHub Actions executa les proves amb Node 22 i Chromium/Playwright en formats 1440×1050 i 390×844. Prova apagar durant TX de text, ajustar volum apagat i tornar a encendre; PTT amb resultats finals després de deixar-lo anar; error de xarxa; absència de segona petició de micròfon; alternativa amb dos clics i icona de capçalera.
+- Última comprovació v1.2.3: [Captures del README, execució 43195879590](https://github.com/Guirigall/EmissoraVHF/actions/runs/43195879590), completada correctament. [Publicació Pages 43195879248](https://github.com/Guirigall/EmissoraVHF/actions/runs/43195879248), correcta.
+- **El reconeixedor d’aquestes proves és simulat. No s’hi envia veu humana a un servei real.** El format mòbil emulat tampoc és una prova en un telèfon físic.
+- El handoff anterior indicava comprovacions de converses, escàner, canal 70, DSC, francès i mode fora de línia. No totes s’han tornat a executar manualment en aquesta continuació.
+- Sense verificació real documentada del reconeixement amb micròfon, de Claude contra l’API, d’Android/iPhone físics ni de Safari.
+
+## 3. Decisions clau i motius
+
+- **Interfície i ràdio separades:** `settings.ui` controla textos i consells; `settings.lang` controla respostes, veu i reconeixement. Permet una interfície catalana amb comunicacions en una altra llengua.
+- **Sense català com a llengua de ràdio:** decisió prèvia per la qualitat/disponibilitat de les veus sintètiques observada en el projecte. No és una afirmació universal sobre tots els navegadors. Configuracions antigues amb `lang: 'ca'` es migren a una llengua admesa.
+- **Alternativa escrita conservada:** permet utilitzar el simulador quan el reconeixement no està disponible o falla.
+- **Una sola captura durant PTT:** `listen()` gestiona el reconeixedor. Ja no s’invoca `audio.micMeter()` simultàniament. El nivell TX indica activitat de parla detectada; no mesura l’amplitud real de la veu.
+- **Esperar resultats finals:** `listen().stop()` espera el final del servei, amb límit de 8 s. Si el navegador acaba abans que s’alliberi el PTT, pot reiniciar la captura amb un màxim de tres reintents. Hi ha un límit global de TX de 45 s a `app.js`.
+- **Cancel·lació per sessió:** apagar invalida transcripcions i respostes IA pendents, perquè no afectin la pròxima sessió.
+- **Diagnòstic mínim en memòria:** mostra context segur, connexió, disponibilitat de l’API i últimes fases/codis. No grava ni desa àudio o claus. Els textos transcrits sí apareixen al registre normal de comunicacions.
+- **HTML/CSS/mòduls ES estàtics:** sense compilació ni dependències per al funcionament local bàsic. Playwright és només per a l’automatització de proves/captures.
+- **Motor local decideix canal i abast; Claude genera contingut:** es validen els interlocutors retornats per la IA. La IA no ha de saltar-se les regles de recepció.
+- **Clau d’Anthropic només al navegador de cada usuari:** `localStorage`; mai al repositori, en captures ni en logs publicats.
+- **Chrome prioritzat pel llançador:** decisió prèvia per veus i reconeixement. L’existència de l’API al navegador no garanteix que el servei funcioni. No s’ha identificat encara el navegador concret amb què falla l’usuari.
+- **Una sola font per al dibuix de l’app:** `icons/icon.svg` és també la imatge de la capçalera, evitant un segon SVG divergent.
+
+## 4. Coses provades, abandonades o no concloents
+
+- **Icona antiga vertical i dibuix antic de capçalera:** rebutjats per l’usuari per l’aspecte. No restaurar-los. La substitució inicial només canviava les icones de la PWA i deixava el SVG independent de la capçalera; v1.2.3 ho unifica.
+- **Reconeixement i `getUserMedia` simultanis per tenir vúmetre:** abandonat com a possible font de conflictes. Treure la segona captura **no ha demostrat resoldre** el problema real: l’usuari va informar que el PTT continuava fallant.
+- **Mostrar «Escoltant» immediatament:** substituït per fases de preparació i captura real. No confondre `start` del servei amb `audiostart`.
+- **Donar per resolt el PTT perquè passen proves simulades:** les versions anteriors van passar aquestes proves i l’usuari va continuar informant d’error. No repetir aquesta conclusió.
+- **Hipòtesis encara no confirmades:** conflicte entre captures, interrupció de la pulsació pel diàleg de permisos, servei de reconeixement inaccessible o navegador incompatible. No presentar-ne cap com a causa provada ni com a descartada definitivament.
+- **`node --test tests/`:** fallava al runner amb Node 22, encara que funcionava a l’entorn local. Substituït per `node --test tests/*.test.mjs` a `package.json`.
+- **Veus sintètiques filtrades amb Web Audio:** el disseny actual no les encamina pel filtre; l’efecte de ràdio es produeix sobre soroll i altres sons. No s’ha implementat una alternativa.
+- **Publicar amb Git des de la shell d’aquest entorn:** va fallar per resolució DNS de `github.com`. Es va publicar amb les eines connectades de GitHub, creant arbre, commit i actualitzant `main` sense forçar. No interpretar-ho com un error del projecte o de les credencials.
+
+## 5. Pendent, en ordre de prioritat
+
+1. **Diagnosticar el PTT real amb l’usuari.** Ja se li ha demanat navegador/dispositiu i el text sota el PTT; encara no hi ha resposta. Demanar el contingut de «Diagnòstic de veu» després d’un intent i comprovar que veu **v1.2.3**. Distingir navegador i PWA instal·lada, mode text/veu, canal admès, context segur i connexió.
+2. **Reproduir i corregir la causa observada.** Provar PTT mantingut i «Parla amb un toc». Identificar si falta `audiostart`, si hi ha parla sense resultats o si arriba un error com `network`, `not-allowed`, `audio-capture` o `start-timeout`. Un permís concedit o una icona de micròfon activa no proven que la transcripció funcioni. No tornar a canviar l’arquitectura a cegues sense aquestes dades.
+3. **Verificar la correcció amb veu real:** frase reconeguda, registre i resposta; repetir transmissions, concedir permís per primera vegada, canviar canal després de deixar anar, apagar/encendre i provar dispositiu físic. Afegir regressió de la causa concreta. Registrar què s’ha comprovat i amb quin navegador.
+4. **Provar opcionalment Claude contra el servei real**, només amb una clau que proporcioni l’usuari per a aquest ús. «Prova la connexió» a configuració. No donar per vàlids models, paràmetres beta o preus perquè el mock els accepti.
+5. **Revisar coherència de documentació i versions** quan es resolgui la veu: README d’usuari, paquet, SW i distintiu. Actualitzar el handoff amb evidència, no només amb canvis de codi.
+6. **Millores opcionals, sense compromís d’implementació:** manifests per idioma, escolta doble 16 + canal de treball, accents de vaixells estrangers, mapa de posició, puntuació de procediment, exercicis guiats i aspecte inspirat en B&G V60. Són idees del handoff anterior, no la feina prioritària. Aquell document afirmava que l’usuari té el manual V60; no s’ha localitzat ni analitzat en aquesta continuació.
+
+## 6. Problemes oberts, dubtes i riscos coneguts
+
+- **Error principal obert:** l’usuari diu que el micròfon sembla activar-se però no es reconeix veu. Va reiterar l’error després de v1.2.2. No hi ha confirmació del resultat de v1.2.3 ni dades del navegador.
+- Les proves mock no comproven permisos reals, dispositiu d’entrada, servidor de reconeixement, xarxa ni compatibilitat del navegador. La detecció `canListen()` només comprova la presència de l’API.
+- Les veus depenen del sistema/navegador. Pot haver-hi API de síntesi sense veus disponibles; hi ha avisos i alternativa escrita. La implementació usa habitualment reconeixement remot, amb dependència de connexió i tractament d’àudio pel proveïdor del navegador.
+- Mode IA no verificat amb una petició real. Els identificadors de model i paràmetres del codi són configuració existent, no garantia de disponibilitat ni de cost.
+- El motor local interpreta paraules i intents; pot fallar amb frases inesperades. La IA tampoc garanteix entendre qualsevol frase.
+- Manifest en català per a totes les llengües; no s’han creat manifests localitzats.
+- Service worker xarxa-primer: els recursos i la versió instal·lada s’han de comprovar abans d’atribuir un resultat a l’últim canvi. No s’ha d’esborrar indiscriminadament `localStorage`, perquè conté preferències i pot contenir la clau de l’usuari.
+- **Històries Git local/remota diferents:** aquesta continuació va crear commits locals i publicar commits equivalents mitjançant API, amb altres SHA; les captures afegeixen commits del bot a GitHub. No fer `push --force`, `reset --hard` o rebase sense inspeccionar arbres, diferències i canvis de l’usuari. Partir de l’estat remot actual quan calgui integrar.
+
+## 7. Context tècnic, fitxers i restriccions
+
+### Executar i provar
+
+Des de la carpeta del projecte, amb Node 22 o posterior i Python 3:
 
 ```bash
-bash Obre-Emissora.sh      # servidor local i obre Chrome (o el navegador per defecte)
-npm test                   # 16 proves amb node --test (Node 22 o posterior)
+bash Obre-Emissora.sh
+# o només el servidor local:
+npm start
+# proves:
+npm test
 ```
 
-El micròfon, el reconeixement de veu i el service worker necessiten `localhost` o HTTPS. Obrir `index.html` directament com a fitxer no funciona.
+El servidor local s’obre a `http://localhost:8090`. El llançador prioritza Chrome i, si no el troba, el navegador per defecte. Cal servir l’app per localhost o HTTPS per a les funcions de veu/SW; no treballar obrint directament `index.html` com a fitxer.
 
-Publicar: fer `git push` a `main`. GitHub Pages es reconstrueix sol en un o dos minuts. **Cal pujar la `VERSION` de `sw.js`** a cada canvi de fitxers perquè els navegadors que ja tenen l’app instal·lada descarreguin la nova versió.
+### Mapa de fitxers
 
-## Mapa de fitxers
-
-| Fitxer | Què fa |
+| Fitxer | Responsabilitat |
 |---|---|
-| `index.html` | Estructura. Els textos porten `data-i18n`, `data-i18n-html` o `data-i18n-attr`; el text dins l’HTML només és una reserva. |
-| `style.css` | Estil del frontal, la pantalla LCD, els comandaments, el PTT i els panells. |
-| `app.js` | Interfície i orquestració: pantalla, bucle de recepció (cada 120 ms), transmissió, escàner, DSC, configuració, idiomes, registre i historial per canal. Exposa `globalThis.__vhf` per a proves automàtiques al navegador. |
-| `channels.js` | Pla de canals: freqüències, dúplex, permisos de transmissió i claus de nom (`nameKey`). |
-| `stations.js` | Estacions que responen: canals que escolten, canal de treball, distància, àlies (per reconèixer-ne el nom) i perfil de veu. |
-| `dialog.js` | Motor local (sense IA), funció pura provable amb Node: qui respon, intenció, flux d’amarrament, mayday i pan-pan, abast i consells. Respostes en `es`, `en` i `fr`. Tolera errors d’escriptura i de reconeixement (distància d’edició i prefixos). |
-| `chatter.js` | Variants de resposta, missatges d’ajuda, serveis de la marina i conversa informal per temes (`es`, `en`, `fr`). |
-| `traffic.js` | Generador de trànsit de fons per canal i planificador (`Traffic`): els canals avancen encara que no s’escoltin, i recorda qui ha parlat a cada canal. |
-| `ai.js` | Mode IA amb Claude: construeix la situació, crida l’API i valida la resposta. |
-| `audio.js` | Motor de so amb Web Audio i vúmetre del micròfon. |
-| `voice.js` | Síntesi de veu (frases dividides, veu estable per persona) i reconeixement de veu. |
-| `i18n.js` | Tots els textos de la interfície en quatre idiomes, noms de canal, paraules de procediment de ràdio, detecció d’idioma. Sense dependències del navegador. |
-| `sw.js` | Service worker: xarxa primer i, sense connexió, la còpia desada. Llista explícita de fitxers a `FILES`. |
-| `vendor/anthropic-sdk.mjs` | SDK oficial `@anthropic-ai/sdk` 1.8.0 empaquetat amb esbuild per al navegador (369 KB). Només es carrega si s’activa el mode IA. |
-| `tests/` | Proves: canals, diàleg, trànsit, IA (situació), traduccions i fitxers fora de línia. |
-| `.github/` | Flux «Captures del README»: genera `docs/images/desktop.jpg` i `mobile.jpg` amb Playwright. |
-| `Obre-Emissora.sh` | Llançador local; prioritza Chrome. |
+| `index.html`, `style.css` | Frontal, LCD, comandaments, PTT, botó `#voiceToggle`, diagnòstic `#voiceDiagnostics`, registre i configuració. |
+| `app.js` | Orquestració, bucle de 120 ms, `pttDown`, `pttUp`, `transmitted`, `powerToggle`, cancel·lació de sessió, cues, configuració i idiomes. |
+| `voice.js` | Síntesi i `listen(lang, onInterim, onStatus)`; retorna `stop()` i `abort()`. Fases: `starting`, `service`, `ready`, `speech`, `result`, `end`, `error`. |
+| `audio.js` | Soroll i efectes Web Audio; conserva `micMeter()`, però el PTT ja no l’invoca. |
+| `channels.js`, `stations.js` | Pla de canals i interlocutors/distàncies simulats. |
+| `dialog.js`, `chatter.js` | Motor local i variants de respostes. |
+| `traffic.js` | Generació, planificació i memòria de trànsit per canal. |
+| `ai.js` | Context, crida a Claude i validació de resposta. |
+| `i18n.js` | Textos CA/ES/EN/FR, llengües de ràdio, noms de canal i paraules de procediment. |
+| `sw.js` | `VERSION='v1.2.3'`, llista explícita `FILES`, xarxa-primer i fallback fora de línia. |
+| `manifest.webmanifest`, `icons/` | Instal·lació i icona nova. SVG també usat a la capçalera; PNG 192/512 per instal·lació. |
+| `tests/*.test.mjs` | Canals, diàleg, trànsit, IA, traduccions, offline, àudio i veu simulada. |
+| `.github/workflows/readme-previews.yml` | Node 22, proves, Playwright i captures, amb commit de les imatges per bot. |
+| `.github/scripts/readme-preview.cjs` | Prova l’app amb Chromium, substitueix el reconeixedor per un mock i captura ordinador/mòbil. |
+| `docs/images/` | `desktop.jpg`, `mobile.jpg`, `capture.json` amb commit font i errors de pàgina. |
+| `README.md` | Guia d’usuari en català, espanyol i anglès. La interfície també té francès. |
+| `vendor/anthropic-sdk.mjs`, `vendor/VERSION` | SDK Anthropic empaquetat; versió declarada `@anthropic-ai/sdk 1.8.0`. Càrrega només amb IA. |
 
-## Decisions importants i per què
+`app.js` exposa `globalThis.__vhf` per a proves: `state`, `settings`, `traffic`, `sendText`, `setChannel`, `powerToggle`, `spokenCount`. No hi ha una connexió remota al micròfon de l’usuari disponible en aquesta sessió.
 
-- **El català no és llengua de ràdio.** Les veus sintètiques catalanes sonen molt malament (i Chrome no en té cap). La interfície sí que és en català. La configuració antiga amb `lang: 'ca'` es migra sola al castellà.
-- **Dos idiomes separats.** `settings.ui` (interfície i consells) i `settings.lang` (ràdio: veu, reconeixement, respostes). La guia mostra les frases de ràdio en `lang` amb el text explicatiu en `ui`.
-- **Chrome com a navegador recomanat.** A Linux, Firefox no té veus si el servei `speech-dispatcher` no està actiu, i tampoc té reconeixement de veu. L’app ho detecta i mostra un avís; el llançador obre Chrome.
-- **Les veus no passen pel filtre de ràdio.** El navegador no deixa enviar la síntesi de veu a Web Audio. Per compensar-ho, l’estàtica, el squelch i els clics sí que el tenen, i un senyal fort fa callar l’estàtica.
-- **Mode IA: l’app decideix qui et pot sentir, Claude decideix què es diu.** `ai.js` calcula localment quines estacions escolten el canal i són dins d’abast. Després descarta qualsevol resposta de qui no hi era. Si la IA falla (sense clau, sense connexió, clau invàlida o rebuig), respon el motor local i el registre ho indica.
-- **Clau d’API només al navegador de l’usuari** (`localStorage`). No s’ha de posar mai cap clau al repositori ni a l’app publicada.
+### Configuració i IA existent
 
-## Mode IA (Claude)
+Preferències sota `localStorage['vhf-settings-v1']`: nom del vaixell (`Xaloc` per defecte), `ui`, `lang`, mode, canal, potència, volum, squelch, subtítols i paràmetres IA.
 
-- Model per defecte `claude-opus-5-5`; opcions `claude-sonnet-5-5` i `claude-haiku-5-5` (aquest sense `fallbacks`).
-- Petició: `client.beta.messages.parse` amb `betaJSONSchemaOutputFormat` (JSON validat: `replies[{speaker, lang, text}]` i `tip`), `output_config.effort: 'low'` per respondre ràpid, `cache_control` al text de sistema, i `betas: ['server-side-fallback-2026-07-01']` + `fallbacks: 'default'` (si el model principal declina, l’API ho torna a provar amb un altre model).
-- Client del navegador amb `dangerouslyAllowBrowser: true`: és acceptable només perquè cada usuari hi posa la seva clau.
-- Cost segons model i ús de l’API; no s’ha verificat cap import per missatge.
-- **Encara no s’ha provat contra l’API real.** Les proves al navegador s’han fet amb el servei simulat (interceptant `fetch`): petició, resposta i error de clau invàlida. La primera prova real s’ha de fer amb «Prova la connexió» a Configuració.
-- Per actualitzar el SDK: `npm install @anthropic-ai/sdk` en una carpeta temporal, i amb esbuild empaquetar una entrada que exporti `default as Anthropic` i `betaJSONSchemaOutputFormat` de `@anthropic-ai/sdk/helpers/beta/json-schema`, amb `--bundle --format=esm --platform=browser --minify`. Desar el resultat a `vendor/anthropic-sdk.mjs` i actualitzar `vendor/VERSION`.
+`ai.js` declara `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5`. Usa `client.beta.messages.parse`, `betaJSONSchemaOutputFormat`, esquema de respostes, esforç `low`, cache del sistema i, per a alguns models, beta `server-side-fallback-2026-07-01` amb `fallbacks: 'default'`. Client amb `dangerouslyAllowBrowser: true`, timeout de 30 s i un reintent. **Són valors del codi; no s’han validat contra l’API real.** El handoff anterior descrivia proves de petició/resposta i clau invàlida amb `fetch` interceptat. No hi ha preu per missatge verificat.
 
-## Com afegir coses
+### Manteniment i publicació
 
-- **Un text nou a la interfície:** afegir la clau a `i18n.js` en els **quatre** idiomes (la prova `i18n.test.mjs` falla si en falta algun o si l’HTML o el codi fan servir una clau inexistent). Fer servir `t('clau')` al codi, o `data-i18n` a l’HTML.
-- **Una estació:** entrada a `stations.js` (amb `name` en `ca`, `es`, `en` i `fr`, perquè `ca` es fa servir a la interfície), lògica a `dialog.js`, descripció al text de sistema de `ai.js`, fila a la guia de l’`index.html` i claus de traducció.
-- **Un tipus de conversa de fons:** un generador a `traffic.js` i registrar-lo a `GENERATORS` amb el canal i l’interval de temps entre converses.
-- **Un fitxer nou:** afegir-lo a `FILES` de `sw.js` i pujar la `VERSION` (la prova `offline.test.mjs` comprova que tots els `.js` hi siguin).
-- **Una llengua de ràdio nova:** respostes a `dialog.js` (`S`), `chatter.js`, `traffic.js`, `PHRASES` d’`app.js`, `PROWORDS` d’`i18n.js`, `LOCALE` de `voice.js`, l’enum de l’esquema d’`ai.js` i `VOICE_LANGS`.
+- Text nou: afegir-lo als quatre idiomes de `i18n.js` i usar `t()` o atributs `data-i18n*`; executar les proves de traduccions.
+- Nou mòdul de l’app: incloure’l a `FILES` de `sw.js`. En canvis de recursos funcionals, actualitzar la versió SW i el distintiu visible de `index.html`. Aquest handoff no és un recurs de la memòria cau: editar només documentació no requereix incrementar la versió funcional.
+- Nova estació: revisar `stations.js`, motor local, context IA, guia i traduccions. Nou idioma de ràdio: revisar `dialog.js`, `chatter.js`, `traffic.js`, frases d’`app.js`, `i18n.js`, `voice.js` i esquema IA.
+- Executar proves i revisar el diff abans de publicar. Publicació normal amb push a `main` si l’historial està integrat; amb eina connectada, partir del cap remot i actualitzar la referència amb SHA esperat i sense forçar.
+- «Captures del README» s’executa quan canvien fitxers de l’app, proves, paquet o la mateixa automatització, i també manualment a Actions. Un canvi només a aquest document no el dispara. Verificar l’estat de Pages i de les proves quan correspongui.
 
-## Estat de les proves
+### Preferències i restriccions de l’usuari
 
-- `npm test`: 16 proves, totes superades.
-- Comprovat amb Chrome (local i a la web publicada): converses completes, escàner, bloqueig del canal 70, alerta DSC, mayday, PTT amb micròfon simulat, quatre idiomes, conversa en francès, fora de línia i actualització d’una versió instal·lada.
-- **No comprovat:** reconeixement de veu real amb micròfon, mode IA contra l’API real, mòbil físic (Android i iPhone), Safari.
-
-## Limitacions conegudes i idees pendents
-
-- El flux «Captures del README» comprova el navegador i actualitza les captures quan canvien els fitxers de l’app. També es pot llançar manualment a Actions.
-- El manifest (`manifest.webmanifest`) té el nom en català: a la pantalla d’inici del mòbil l’app es diu «Emissora VHF» en qualsevol idioma. Es podrien fer manifests per idioma, com a CablejatElectric.
-- El motor local busca paraules: amb frases molt imprevistes pot no encertar (per això hi ha el mode IA).
-- El reconeixement de veu de Chrome envia l’àudio als servidors de Google i necessita Internet.
-- Idees: escolta doble (16 + un altre canal), veus en anglès per a vaixells estrangers amb accent, mapa amb la posició, puntuació de procediment, escenaris guiats (exercicis), aspecte inspirat en la B&G V60 (l’usuari en té el manual).
-
-## Context de l’autor
-
-- El projecte el mantén **Guirigall**. Els commits es fan amb l’adreça privada de GitHub `61776585+Guirigall@users.noreply.github.com`; no s’ha de posar cap correu personal al repositori.
-- Projectes germans al mateix compte, amb el mateix estil de PWA i el mateix flux de captures: CablejatElectric, ElectricitatABord, ExercicisCartaNautica, MotorMarino.
-- L’usuari escriu en català i prefereix explicacions en català.
-
-## PTT i icona · v1.2.2
-
-- Icona nova: emissora fixa horitzontal amb micròfon separat, SVG i PNG de 192/512 px.
-- PTT: captura única del reconeixedor, sense obrir un segon micròfon per al vúmetre. El nivell TX indica activitat de parla detectada, no amplitud mesurada.
-- Es distingeix preparació d’escolta real; es processen resultats després de deixar anar el botó (fins a 8 s), es recuperen finals prematurs de sessió i s’eviten transcripcions duplicades.
-- Errors de xarxa, captura, permís i llengua amb missatges en els quatre idiomes.
-- Proves unitàries amb reconeixedor simulat i regressió Chromium del PTT complet. La veu real del dispositiu continua requerint comprovació amb l’usuari; el servei del navegador necessita connexió.
-
-## Seguiment del PTT · v1.2.3
-
-L’usuari informa que el PTT real encara no funciona. Les proves simulades no demostren que el servei de transcripció del seu navegador funcioni. Pendent: navegador/dispositiu i fases/codi d’error reals.
-
-- La capçalera ara reutilitza `icons/icon.svg` (abans tenia un altre SVG independent).
-- Alternativa «Parla amb un toc»: inicia amb un clic i acaba amb un altre; evita haver de mantenir la pulsació mentre es concedeix permís. Selecciona explícitament mode veu.
-- Diagnòstic visible: entorn segur, connexió, disponibilitat del reconeixedor i les últimes fases/codis d’error. No desa àudio ni claus; només viu en memòria.
-- «Escoltant» només quan arriba `audiostart`. Límit de 12 s si no arriba captura real, amb missatge explícit.
-- Versió visible a la capçalera per detectar una PWA desactualitzada.
+- Respondre en català. Treballar els projectes a `/home/nocal/Projectes` o l’equivalent `/var/home/nocal/Projectes`.
+- Conservar les traduccions, el mode text i la instal·lació PWA. L’usuari ha aprovat la icona horitzontal nova.
+- Repositori públic: cap clau API, correu personal, dades de navegador ni àudio privat en commits, captures o logs publicats.
+- Autor de commits emprat: `Guirigall`, correu privat GitHub `61776585+Guirigall@users.noreply.github.com`.
+- Prioritzar resoldre la veu abans d’ampliar funcions. No anunciar el PTT com a arreglat sense prova real i confirmació de què s’ha verificat.

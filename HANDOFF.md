@@ -1,8 +1,13 @@
 # Handoff · EmissoraVHF
 
-Document autosuficient per continuar el projecte sense llegir la conversa. Actualitzat el **12 de novembre de 2026**. Estat funcional: **v1.2.3**, segons `sw.js` i el distintiu de la capçalera. `package.json` encara indica `1.0.0`: són versions diferents actualment.
+Document autosuficient per continuar el projecte sense llegir la conversa. Actualitzat el **12 de novembre de 2026**. Estat funcional: **v1.2.4** (`sw.js`, distintiu de la capçalera i `package.json` coincideixen).
 
-**Prioritat immediata: el PTT amb micròfon real continua sense funcionar segons l’usuari. La causa no està identificada. Les proves amb reconeixement simulat passen i no demostren que el servei real funcioni.** L’usuari encara no ha confirmat el resultat de l’alternativa i el diagnòstic introduïts a v1.2.3.
+**PTT amb micròfon real: causa identificada i corregida a v1.2.4, pendent de confirmació de l’usuari amb la seva veu.**
+
+- **Causa:** al Chrome 157 (flatpak) de Linux d’aquest equip, el reconeixedor (`webkitSpeechRecognition`) arrencat amb `start()` obre la seva pròpia captura d’àudio i **no hi rep so**: arriben `start` i `audiostart`, però mai `soundstart`, i als ~8 s acaba en `no-speech`. Era exactament el símptoma descrit per l’usuari («el micròfon s’activa però no reconeix res»). En canvi, `getUserMedia` sí que rep l’àudio (pic 1,0).
+- **Correcció:** `voice.js` obre el micròfon amb `getUserMedia` i en passa la pista al reconeixedor amb `start(track)`. Si el navegador no admet la pista, l’ignora o la rebutja, i es fa servir la captura pròpia com abans. El vúmetre torna a mesurar el nivell real amb el mateix flux, sense segona captura.
+- **Com s’ha comprovat (no simulat):** Chrome de l’usuari, sense finestra, amb `--use-fake-device-for-media-stream --use-file-for-fake-audio-capture=<wav>`. El WAV és una frase generada amb `espeak-ng`, així que l’àudio va de debò als servidors de reconeixement de Google. Sense pista: `no-speech`. Amb pista: `soundstart`, `speechstart` i text final. App completa (PTT mantingut i «Parla amb un toc»): frase transcrita (la veu d’espeak s’entén imperfectament: «…this is sailing yacht… radio check over»), la marina respon i el vúmetre arriba a 1,0.
+- **Encara no comprovat:** la veu de l’usuari amb el seu micròfon físic, Chrome amb finestra, Android/iPhone físics i Safari.
 
 - Repositori públic: <https://github.com/Guirigall/EmissoraVHF>
 - Aplicació: <https://guirigall.github.io/EmissoraVHF/>
@@ -37,16 +42,18 @@ Estacions, posicions, abast, diàlegs i ús dels canals als escenaris són ficti
 |---|---|
 | v1.2.1 | Apagar cancel·la transmissió, temporitzadors DSC, micròfon i cua de respostes; invalida resultats tardans de la sessió; neteja historial i estat de diàleg. Canal fix durant TX i preservat en processar la transcripció. Volum amb la ràdio apagada i alliberament de permisos de micròfon tardans corregits. |
 | v1.2.2 | Icona d’emissora fixa horitzontal amb micròfon separat, SVG i PNG de 192/512 px. Eliminada la segona captura de micròfon per al vúmetre durant el PTT. Gestió de resultats finals després de deixar anar el botó, sessions acabades prematurament i textos revisats. Errors de veu traduïts. |
+| v1.2.4 | **Correcció del PTT real:** el micròfon s’obre amb `getUserMedia` i la pista es passa al reconeixedor (`start(track)`), amb alternativa sense pista. Vúmetre real amb el mateix flux. Fases noves al diagnòstic: «Micròfon obert», «So detectat pel reconeixedor» i «Sense pista pròpia». Les fases repetides s’agrupen (×N). `package.json` passa a 1.2.4. |
 | v1.2.3 | La capçalera reutilitza `icons/icon.svg`. Botó «Parla amb un toc» per començar amb un clic i acabar amb un altre. Diagnòstic de fases/codis visible i versió a la capçalera. «Escoltant» només després de `audiostart`; límit de 12 s si no comença la captura. |
 
 L’usuari ha dit que **la icona nova està bé**. Va indicar que el dibuix antic encara apareixia a dalt a l’esquerra; això s’ha corregit a v1.2.3. No s’ha rebut una confirmació posterior.
 
 ### Evidència i límits de les proves
 
-- `npm test` passa amb els vuit fitxers de prova actuals. No confondre el recompte de fitxers del resum local amb el nombre de casos interns; el recompte antic de «16 proves» ha quedat obsolet.
+- `npm test` passa: 27 casos en vuit fitxers. A `voice.test.mjs` hi ha regressions de la causa real: la pista arriba al reconeixedor i s’allibera, el permís denegat es diu `not-allowed`, i sense dispositiu es fa servir la captura del navegador.
+- Prova real del reconeixement (12/11/2026, v1.2.4): vegeu la prioritat a l’inici del document.
 - El flux de GitHub Actions executa les proves amb Node 22 i Chromium/Playwright en formats 1440×1050 i 390×844. Prova apagar durant TX de text, ajustar volum apagat i tornar a encendre; PTT amb resultats finals després de deixar-lo anar; error de xarxa; absència de segona petició de micròfon; alternativa amb dos clics i icona de capçalera.
 - Última comprovació v1.2.3: [Captures del README, execució 43195879590](https://github.com/Guirigall/EmissoraVHF/actions/runs/43195879590), completada correctament. [Publicació Pages 43195879248](https://github.com/Guirigall/EmissoraVHF/actions/runs/43195879248), correcta.
-- **El reconeixedor d’aquestes proves és simulat. No s’hi envia veu humana a un servei real.** El format mòbil emulat tampoc és una prova en un telèfon físic.
+- **El reconeixedor de les proves automàtiques (Node i Actions) és simulat.** La prova real s’ha fet a mà amb el Chrome de l’equip i àudio generat; s’hauria d’automatitzar (vegeu pendents). El format mòbil emulat tampoc és una prova en un telèfon físic.
 - El handoff anterior indicava comprovacions de converses, escàner, canal 70, DSC, francès i mode fora de línia. No totes s’han tornat a executar manualment en aquesta continuació.
 - Sense verificació real documentada del reconeixement amb micròfon, de Claude contra l’API, d’Android/iPhone físics ni de Safari.
 
@@ -55,7 +62,7 @@ L’usuari ha dit que **la icona nova està bé**. Va indicar que el dibuix anti
 - **Interfície i ràdio separades:** `settings.ui` controla textos i consells; `settings.lang` controla respostes, veu i reconeixement. Permet una interfície catalana amb comunicacions en una altra llengua.
 - **Sense català com a llengua de ràdio:** decisió prèvia per la qualitat/disponibilitat de les veus sintètiques observada en el projecte. No és una afirmació universal sobre tots els navegadors. Configuracions antigues amb `lang: 'ca'` es migren a una llengua admesa.
 - **Alternativa escrita conservada:** permet utilitzar el simulador quan el reconeixement no està disponible o falla.
-- **Una sola captura durant PTT:** `listen()` gestiona el reconeixedor. Ja no s’invoca `audio.micMeter()` simultàniament. El nivell TX indica activitat de parla detectada; no mesura l’amplitud real de la veu.
+- **Una sola captura durant PTT, compartida:** `listen()` obre el micròfon una vegada per transmissió (els reintents reutilitzen la pista) i el passa al reconeixedor. `onStream` dona el mateix `MediaStream` a `audio.meter()` per al vúmetre, sense una segona `getUserMedia`. `audio.micMeter()` continua existint però el PTT no la fa servir.
 - **Esperar resultats finals:** `listen().stop()` espera el final del servei, amb límit de 8 s. Si el navegador acaba abans que s’alliberi el PTT, pot reiniciar la captura amb un màxim de tres reintents. Hi ha un límit global de TX de 45 s a `app.js`.
 - **Cancel·lació per sessió:** apagar invalida transcripcions i respostes IA pendents, perquè no afectin la pròxima sessió.
 - **Diagnòstic mínim en memòria:** mostra context segur, connexió, disponibilitat de l’API i últimes fases/codis. No grava ni desa àudio o claus. Els textos transcrits sí apareixen al registre normal de comunicacions.
@@ -71,23 +78,23 @@ L’usuari ha dit que **la icona nova està bé**. Va indicar que el dibuix anti
 - **Reconeixement i `getUserMedia` simultanis per tenir vúmetre:** abandonat com a possible font de conflictes. Treure la segona captura **no ha demostrat resoldre** el problema real: l’usuari va informar que el PTT continuava fallant.
 - **Mostrar «Escoltant» immediatament:** substituït per fases de preparació i captura real. No confondre `start` del servei amb `audiostart`.
 - **Donar per resolt el PTT perquè passen proves simulades:** les versions anteriors van passar aquestes proves i l’usuari va continuar informant d’error. No repetir aquesta conclusió.
-- **Hipòtesis encara no confirmades:** conflicte entre captures, interrupció de la pulsació pel diàleg de permisos, servei de reconeixement inaccessible o navegador incompatible. No presentar-ne cap com a causa provada ni com a descartada definitivament.
+- **Hipòtesis del PTT revisades el 12/11/2026:** «servei de reconeixement inaccessible» queda descartada en aquest equip (amb pista, Google retorna text). La causa observada és la captura pròpia del reconeixedor sense so (vegeu l’inici). Si l’usuari continua tenint problemes, el diagnòstic dirà si falta «So detectat» o si arriba un error (`not-allowed`, `network`…).
 - **`node --test tests/`:** fallava al runner amb Node 22, encara que funcionava a l’entorn local. Substituït per `node --test tests/*.test.mjs` a `package.json`.
 - **Veus sintètiques filtrades amb Web Audio:** el disseny actual no les encamina pel filtre; l’efecte de ràdio es produeix sobre soroll i altres sons. No s’ha implementat una alternativa.
 - **Publicar amb Git des de la shell d’aquest entorn:** va fallar per resolució DNS de `github.com`. Es va publicar amb les eines connectades de GitHub, creant arbre, commit i actualitzant `main` sense forçar. No interpretar-ho com un error del projecte o de les credencials.
 
 ## 5. Pendent, en ordre de prioritat
 
-1. **Diagnosticar el PTT real amb l’usuari.** Ja se li ha demanat navegador/dispositiu i el text sota el PTT; encara no hi ha resposta. Demanar el contingut de «Diagnòstic de veu» després d’un intent i comprovar que veu **v1.2.3**. Distingir navegador i PWA instal·lada, mode text/veu, canal admès, context segur i connexió.
-2. **Reproduir i corregir la causa observada.** Provar PTT mantingut i «Parla amb un toc». Identificar si falta `audiostart`, si hi ha parla sense resultats o si arriba un error com `network`, `not-allowed`, `audio-capture` o `start-timeout`. Un permís concedit o una icona de micròfon activa no proven que la transcripció funcioni. No tornar a canviar l’arquitectura a cegues sense aquestes dades.
-3. **Verificar la correcció amb veu real:** frase reconeguda, registre i resposta; repetir transmissions, concedir permís per primera vegada, canviar canal després de deixar anar, apagar/encendre i provar dispositiu físic. Afegir regressió de la causa concreta. Registrar què s’ha comprovat i amb quin navegador.
+1. **Confirmar amb l’usuari que v1.2.4 funciona amb la seva veu** (Chrome, PWA o web). Comprovar que la capçalera diu **v1.2.4** (si no, recarregar: el service worker és xarxa primer). Si falla, demanar el «Diagnòstic de veu» i mirar si hi ha «Micròfon obert» i «So detectat pel reconeixedor».
+2. **Automatitzar la prova real** a Actions o en un script local: Chrome amb `--use-file-for-fake-audio-capture` i un WAV, com a la prova manual del 12/11/2026. Ara Actions només fa servir un reconeixedor simulat. Atenció: depèn de la xarxa i del servei de Google, i pot ser inestable.
+3. **Verificar amb veu humana i dispositius reals:** frase reconeguda, registre i resposta; repetir transmissions, concedir permís per primera vegada, canviar canal després de deixar anar, apagar/encendre i provar dispositiu físic. Afegir regressió de la causa concreta. Registrar què s’ha comprovat i amb quin navegador.
 4. **Provar opcionalment Claude contra el servei real**, només amb una clau que proporcioni l’usuari per a aquest ús. «Prova la connexió» a configuració. No donar per vàlids models, paràmetres beta o preus perquè el mock els accepti.
 5. **Revisar coherència de documentació i versions** quan es resolgui la veu: README d’usuari, paquet, SW i distintiu. Actualitzar el handoff amb evidència, no només amb canvis de codi.
 6. **Millores opcionals, sense compromís d’implementació:** manifests per idioma, escolta doble 16 + canal de treball, accents de vaixells estrangers, mapa de posició, puntuació de procediment, exercicis guiats i aspecte inspirat en B&G V60. Són idees del handoff anterior, no la feina prioritària. Aquell document afirmava que l’usuari té el manual V60; no s’ha localitzat ni analitzat en aquesta continuació.
 
 ## 6. Problemes oberts, dubtes i riscos coneguts
 
-- **Error principal obert:** l’usuari diu que el micròfon sembla activar-se però no es reconeix veu. Va reiterar l’error després de v1.2.2. No hi ha confirmació del resultat de v1.2.3 ni dades del navegador.
+- **Error principal (probablement resolt a v1.2.4, pendent de confirmació):** l’usuari deia que el micròfon semblava activar-se però no es reconeixia la veu. S’ha reproduït amb el Chrome de l’equip i àudio real, s’ha trobat la causa (captura pròpia del reconeixedor sense so) i s’ha corregit. Falta la confirmació de l’usuari amb la seva veu i el seu micròfon.
 - Les proves mock no comproven permisos reals, dispositiu d’entrada, servidor de reconeixement, xarxa ni compatibilitat del navegador. La detecció `canListen()` només comprova la presència de l’API.
 - Les veus depenen del sistema/navegador. Pot haver-hi API de síntesi sense veus disponibles; hi ha avisos i alternativa escrita. La implementació usa habitualment reconeixement remot, amb dependència de connexió i tractament d’àudio pel proveïdor del navegador.
 - Mode IA no verificat amb una petició real. Els identificadors de model i paràmetres del codi són configuració existent, no garantia de disponibilitat ni de cost.
@@ -118,14 +125,14 @@ El servidor local s’obre a `http://localhost:8090`. El llançador prioritza Ch
 |---|---|
 | `index.html`, `style.css` | Frontal, LCD, comandaments, PTT, botó `#voiceToggle`, diagnòstic `#voiceDiagnostics`, registre i configuració. |
 | `app.js` | Orquestració, bucle de 120 ms, `pttDown`, `pttUp`, `transmitted`, `powerToggle`, cancel·lació de sessió, cues, configuració i idiomes. |
-| `voice.js` | Síntesi i `listen(lang, onInterim, onStatus)`; retorna `stop()` i `abort()`. Fases: `starting`, `service`, `ready`, `speech`, `result`, `end`, `error`. |
-| `audio.js` | Soroll i efectes Web Audio; conserva `micMeter()`, però el PTT ja no l’invoca. |
+| `voice.js` | Síntesi i `listen(lang, onInterim, onStatus, onStream)`; retorna `stop()` i `abort()`. Obre el micròfon i passa la pista al reconeixedor. Fases: `starting`, `mic`, `nomic`, `service`, `ready`, `sound`, `speech`, `result`, `end`, `error`. |
+| `audio.js` | Soroll i efectes Web Audio. `meter(stream, onLevel)` mesura un flux ja obert (el del PTT); `micMeter()` es conserva però no es fa servir. |
 | `channels.js`, `stations.js` | Pla de canals i interlocutors/distàncies simulats. |
 | `dialog.js`, `chatter.js` | Motor local i variants de respostes. |
 | `traffic.js` | Generació, planificació i memòria de trànsit per canal. |
 | `ai.js` | Context, crida a Claude i validació de resposta. |
 | `i18n.js` | Textos CA/ES/EN/FR, llengües de ràdio, noms de canal i paraules de procediment. |
-| `sw.js` | `VERSION='v1.2.3'`, llista explícita `FILES`, xarxa-primer i fallback fora de línia. |
+| `sw.js` | `VERSION='v1.2.4'`, llista explícita `FILES`, xarxa-primer i fallback fora de línia. |
 | `manifest.webmanifest`, `icons/` | Instal·lació i icona nova. SVG també usat a la capçalera; PNG 192/512 per instal·lació. |
 | `tests/*.test.mjs` | Canals, diàleg, trànsit, IA, traduccions, offline, àudio i veu simulada. |
 | `.github/workflows/readme-previews.yml` | Node 22, proves, Playwright i captures, amb commit de les imatges per bot. |

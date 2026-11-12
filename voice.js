@@ -46,22 +46,45 @@ export function silence(){utterances.clear();synth?.cancel()}
 
 const Recognition=globalThis.SpeechRecognition||globalThis.webkitSpeechRecognition;
 export const canListen=()=>!!Recognition;
-// Una sola captura de micròfon: la del reconeixedor. El permís pot trigar a arribar.
-export function listen(lang,onInterim=()=>{},onStatus=()=>{}){
+// Una sola captura de micròfon per transmissió. S'obre amb getUserMedia i la seva pista es passa al
+// reconeixedor (start(track)): el Chrome de Linux (flatpak) no fa arribar so a la captura pròpia del
+// reconeixedor, tot i que getUserMedia sí que rep la veu. Comprovat el 12/11/2026 amb Chrome 157 i àudio real:
+// sense pista només hi ha audiostart i acaba en no-speech; amb la pista arriben soundstart, speechstart i el text.
+// Els navegadors que no admeten la pista l'ignoren i fan servir la seva captura habitual.
+// onStream rep el MediaStream (per al vúmetre, sense obrir cap segona captura).
+export function listen(lang,onInterim=()=>{},onStatus=()=>{},onStream=()=>{}){
  let rec=null,completed='',current='',error=null,stopping=false,aborted=false,ended=true;
  let retry=null,stopPromise=null,resolveStop=null,guard=null,startGuard=null,restarts=0;
+ let stream=null,track=null,opening=false,micTried=false;
+ const media=globalThis.navigator?.mediaDevices;
+ const release=()=>{stream?.getTracks().forEach(t=>t.stop());stream=null;track=null};
  const text=()=>[completed,current].filter(Boolean).join(' ').trim();
- const finish=()=>{clearTimeout(startGuard);clearTimeout(guard);clearTimeout(retry);resolveStop?.({text:text(),error});resolveStop=null};
+ const finish=()=>{clearTimeout(startGuard);clearTimeout(guard);clearTimeout(retry);release();resolveStop?.({text:text(),error});resolveStop=null};
  const fail=code=>{clearTimeout(startGuard);error=code;onStatus('error',code)};
  function start(){
   if(stopping||aborted)return;
   if(!Recognition){fail('unsupported');finish();return}
+  // Primer s'obre el micròfon (una sola vegada per transmissió; els reintents reutilitzen la pista).
+  if(!micTried&&media?.getUserMedia){
+   micTried=true;opening=true;onStatus('starting');
+   media.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}}).then(s=>{
+    opening=false;if(stopping||aborted){s.getTracks().forEach(t=>t.stop());return}
+    stream=s;track=s.getAudioTracks()[0]||null;onStatus('mic');onStream(s);start();
+   },e=>{
+    opening=false;if(stopping||aborted)return;
+    if(e?.name==='NotAllowedError'||e?.name==='SecurityError'){fail('not-allowed');finish();return}
+    // Sense micròfon propi (cap dispositiu, error del sistema): es prova la captura del reconeixedor.
+    onStatus('nomic',e?.name||'');start();
+   });
+   return;
+  }
   try{
    rec=new Recognition();ended=false;current='';
    rec.lang=LOCALE[lang]||lang;rec.interimResults=true;rec.continuous=true;rec.maxAlternatives=1;
    const active=rec;
    rec.onstart=()=>{if(aborted){active.abort();return}if(stopping){try{active.stop()}catch{}return}onStatus('service')};
    rec.onaudiostart=()=>{clearTimeout(startGuard);if(!stopping&&!aborted)onStatus('ready')};
+   rec.onsoundstart=()=>{if(!stopping&&!aborted)onStatus('sound')};
    rec.onspeechstart=()=>{if(!stopping&&!aborted)onStatus('speech')};
    rec.onspeechend=()=>{if(!stopping&&!aborted)onStatus('ready')};
    rec.onresult=e=>{
@@ -81,7 +104,9 @@ export function listen(lang,onInterim=()=>{},onStatus=()=>{}){
    };
    onStatus('starting');
    startGuard=setTimeout(()=>{if(stopping||aborted)return;fail('start-timeout');try{active.abort()}catch{}},12000);
-   rec.start();
+   // Amb la pista del micròfon si en tenim; si el navegador la rebutja, sense.
+   if(track&&track.readyState==='live'){try{rec.start(track)}catch(e){if(e?.name==='TypeError'||e?.name==='NotSupportedError'){onStatus('nomic',e.name);rec.start()}else throw e}}
+   else rec.start();
   }catch(e){ended=true;fail(e.name==='NotAllowedError'?'not-allowed':'start');finish()}
  }
  start();
@@ -90,7 +115,7 @@ export function listen(lang,onInterim=()=>{},onStatus=()=>{}){
    if(stopPromise)return stopPromise;
    stopping=true;clearTimeout(startGuard);clearTimeout(retry);
    stopPromise=new Promise(resolve=>{resolveStop=resolve});
-   if(ended||aborted){finish();return stopPromise}
+   if(ended||aborted||opening){finish();return stopPromise}
    // stop() pot precedir onstart mentre s'accepta el permís: onstart ho tornarà a provar.
    guard=setTimeout(()=>{error||=text()?null:'timeout';try{rec.abort()}catch{}finish()},8000);
    try{rec.stop()}catch{}

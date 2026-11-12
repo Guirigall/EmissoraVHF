@@ -74,6 +74,14 @@ export class RadioAudio{
   g.gain.setValueAtTime(.1,t);g.gain.setValueAtTime(0,x);o.connect(g);o.start(t);o.stop(x+.02);
  }
  // Nivell del micròfon mentre es transmet (només per al vúmetre).
+ // Nivell d'un flux de micròfon ja obert (el del reconeixedor): no obre cap captura nova ni n'atura les pistes.
+ meter(stream,onLevel){
+  if(!this.ctx||!stream)return ()=>{};
+  const src=this.ctx.createMediaStreamSource(stream),an=this.ctx.createAnalyser();an.fftSize=512;src.connect(an);
+  const data=new Uint8Array(an.fftSize);let on=true;
+  const loop=()=>{if(!on)return;an.getByteTimeDomainData(data);let peak=0;for(const v of data)peak=Math.max(peak,Math.abs(v-128));onLevel(peak/128);requestAnimationFrame(loop)};loop();
+  return ()=>{on=false;try{src.disconnect()}catch{}onLevel(0)};
+ }
  async micMeter(onLevel){
   if(!navigator.mediaDevices?.getUserMedia||!this.ctx)return ()=>{};
   const ctx=this.ctx;

@@ -29,11 +29,14 @@ function cancelSession(){session++;voiceProcessing=false;cancelDsc();clearTimeou
 // Només es registren fases i codis d’error, mai àudio ni claus d’API.
 const voiceEvents=[];
 function voiceDiagnostic(phase,code=''){
- voiceEvents.push(new Date().toLocaleTimeString()+' · '+t('voice.phase.'+phase)+(code?' ['+code+']':''));
+ // Les fases repetides seguides (resultats parcials) s'agrupen perquè no amaguin les importants.
+ const label=t('voice.phase.'+phase)+(code?' ['+code+']':''),prev=voiceEvents.at(-1);
+ if(prev&&prev.label===label){prev.count++;prev.time=new Date().toLocaleTimeString()}
+ else voiceEvents.push({time:new Date().toLocaleTimeString(),label,count:1});
  if(voiceEvents.length>12)voiceEvents.shift();renderVoiceDiagnostics();
 }
 function renderVoiceDiagnostics(){
- $('#voiceDiagnostics').textContent=t('voice.environment',{mode:settings.mode,secure:String(isSecureContext),online:String(navigator.onLine),supported:String(canListen())})+'\n'+voiceEvents.join('\n');
+ $('#voiceDiagnostics').textContent=t('voice.environment',{mode:settings.mode,secure:String(isSecureContext),online:String(navigator.onLine),supported:String(canListen())})+'\n'+voiceEvents.map(e=>`${e.time} · ${e.label}${e.count>1?' ×'+e.count:''}`).join('\n');
 }
 /* ---------- Pantalla LCD ---------- */
 const DIGITS={0:'abcdef',1:'bc',2:'abged',3:'abgcd',4:'fgbc',5:'afgcd',6:'afgedc',7:'abc',8:'abcdefg',9:'abcdfg','-':'g',' ':''};
@@ -197,9 +200,13 @@ async function pttDown(){
    if(stamp!==session)return;voiceDiagnostic(phase,error);
    if(!state.tx)return;
    if(phase==='error'){heard.textContent=recognitionError(error);return}
-   state.txLevel=phase==='speech'?.65:0;render();
+   if(!stopMeter){state.txLevel=phase==='speech'?.65:0;render()}
    if(!['starting','ready','service'].includes(phase))return;
    if(!heard.textContent||[t('heard.starting'),t('heard.listening')].includes(heard.textContent))heard.textContent=t(phase==='ready'?'heard.listening':'heard.starting');
+  },stream=>{
+   // Vúmetre real amb el mateix flux que rep el reconeixedor.
+   if(stamp!==session||!state.tx)return;stopMeter?.();
+   stopMeter=audio.meter(stream,l=>{state.txLevel=Math.min(1,l*2.2);$('#ptt').style.setProperty('--lvl',state.txLevel);render()});
   });
  }else heard.textContent=t('heard.textMode');
  clearTimeout(txTimer);txTimer=setTimeout(()=>{if(state.tx){lcdMessage(t('lcd.timeout'),2500);pttUp()}},45000);

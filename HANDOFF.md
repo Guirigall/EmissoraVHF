@@ -15,7 +15,7 @@ Document autosuficient per continuar el projecte sense llegir la conversa. Actua
 
 - Repositori públic: <https://github.com/Guirigall/EmissoraVHF>
 - Aplicació: <https://guirigall.github.io/EmissoraVHF/>
-- Carpeta local: `/var/home/nocal/Projectes/Emissora-VHF` (també accessible com `/home/nocal/Projectes/Emissora-VHF` en aquest entorn).
+- Carpeta local: `Projectes/Emissora-VHF`, dins de la carpeta de projectes de l’usuari.
 - Publicació: GitHub Pages des de `main`, arrel del repositori.
 
 ## 1. Objectiu i destinataris
@@ -164,8 +164,8 @@ Preferències sota `localStorage['vhf-settings-v1']`: nom del vaixell (`Xaloc` p
 
 ### Preferències i restriccions de l’usuari
 
-- Respondre en català. Treballar els projectes a `/home/nocal/Projectes` o l’equivalent `/var/home/nocal/Projectes`.
+- Respondre en català. Treballar els projectes a la carpeta local `Projectes` de l’usuari.
 - Conservar les traduccions, el mode text i la instal·lació PWA. L’usuari ha aprovat la icona horitzontal nova.
 - Repositori públic: cap clau API, correu personal, dades de navegador ni àudio privat en commits, captures o logs publicats.
-- Autor de commits emprat: `Guirigall`, correu privat GitHub `61776585+Guirigall@users.noreply.github.com`.
+- Autor de commits emprat: `Guirigall`, amb l’adreça privada `noreply` de GitHub del compte (mai el correu personal).
 - Prioritzar resoldre la veu abans d’ampliar funcions. No anunciar el PTT com a arreglat sense prova real i confirmació de què s’ha verificat.
